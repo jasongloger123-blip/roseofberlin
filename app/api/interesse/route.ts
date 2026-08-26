@@ -1,0 +1,55 @@
+import { eq } from "drizzle-orm";
+import { getDb } from "../../../db";
+import { purchaseInterests } from "../../../db/schema";
+
+const catalog = {
+  parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "15 ml": 590, "20 ml": 1249, "30 ml": 1860, "50 ml": 2450, "100 ml": 3570 } },
+  oil: { label: "Rose of Berlin · Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
+} as const;
+
+function validEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254; }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json() as { email?: string; product?: keyof typeof catalog; size?: string; quantity?: number; website?: string };
+    if (body.website) return Response.json({ ok: true }, { status: 201 });
+    const email = body.email?.trim().toLowerCase() ?? "";
+    const item = body.product ? catalog[body.product] : undefined;
+    const quantity = Number(body.quantity);
+    const price = item && body.size ? item.prices[body.size as keyof typeof item.prices] : undefined;
+
+    if (!validEmail(email) || !item || !body.size || !price || !Number.isInteger(quantity) || quantity < 1 || quantity > 5) {
+      return Response.json({ error: "Bitte prüfe deine Auswahl und E-Mail-Adresse." }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const [interest] = await db.insert(purchaseInterests).values({ email, product: item.label, size: body.size, quantity, unitPriceCents: price }).returning({ id: purchaseInterests.id });
+    let notificationStatus = "failed";
+    try {
+      const notification = await fetch("https://formsubmit.co/ajax/wagloger@web.de", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          _subject: `Neue Kaufanfrage: ${item.label} ${body.size}`,
+          Produkt: item.label,
+          Größe: body.size,
+          Menge: String(quantity),
+          Einzelpreis: `${(price / 100).toFixed(2).replace(".", ",")} €`,
+          Gesamt: `${((price * quantity) / 100).toFixed(2).replace(".", ",")} €`,
+          "Kunden-E-Mail": email,
+          _replyto: email,
+          _template: "table",
+          _captcha: "false",
+        }),
+      });
+      notificationStatus = notification.ok ? "sent" : "failed";
+    } catch { notificationStatus = "failed"; }
+
+    await db.update(purchaseInterests).set({ notificationStatus }).where(eq(purchaseInterests.id, interest.id));
+    return Response.json({ ok: true, notificationStatus }, { status: 201 });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "unknown error";
+    if (detail.includes("no such table")) return Response.json({ error: "Die Anfragefunktion wird gerade vorbereitet. Bitte versuche es in wenigen Minuten erneut." }, { status: 503 });
+    return Response.json({ error: "Die Anfrage konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 500 });
+  }
+}
