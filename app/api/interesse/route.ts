@@ -24,7 +24,13 @@ export async function POST(request: Request) {
     try {
       const notification = await fetch("https://formsubmit.co/ajax/wagloger@web.de", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Origin: "https://roseofberlin.com",
+          Referer: "https://roseofberlin.com/",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify({
           _subject: `Neue Kaufanfrage: ${item.label} ${body.size}`,
           Produkt: item.label,
@@ -41,8 +47,13 @@ export async function POST(request: Request) {
           _captcha: "false",
         }),
       });
-      notificationStatus = notification.ok ? "sent" : "failed";
-    } catch { notificationStatus = "failed"; }
+      const result = await notification.json() as { success?: string | boolean; message?: string };
+      notificationStatus = notification.ok && (result.success === true || result.success === "true") ? "sent" : "failed";
+      if (notificationStatus !== "sent") console.error("[api/interesse] FormSubmit rejected notification", { status: notification.status, message: result.message });
+    } catch (error) {
+      console.error("[api/interesse] FormSubmit request failed", error);
+      notificationStatus = "failed";
+    }
 
     if (notificationStatus !== "sent") {
       return Response.json({ error: "Die Benachrichtigung konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 502 });
