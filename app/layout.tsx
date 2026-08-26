@@ -13,11 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Selesitina · Rose of Berlin",
-  description: "Handgemachtes Rosenparfum und Hautöl aus eigenen Rosen – in kleinen Chargen von Selesitina Gloger.",
+  metadataBase: new URL("https://roseofberlin-git-main-jasongloger123-5906s-projects.vercel.app"),
+  title: { default: "Rose of Berlin | Handmade Rose Perfume", template: "%s | Rose of Berlin" },
+  description: "Handmade rose perfume and body oil by Selesitina Gloger, crafted in small batches from home-grown roses and homemade rose water.",
+  keywords: ["Rose of Berlin", "handmade perfume", "rose perfume", "rose water", "body oil", "Selesitina Gloger", "Hohenhameln"],
+  authors: [{ name: "Selesitina Gloger" }],
+  creator: "Selesitina Gloger",
+  alternates: { canonical: "/" },
+  openGraph: { type: "website", locale: "en_US", alternateLocale: ["de_DE"], siteName: "Rose of Berlin", title: "Rose of Berlin | Handmade Rose Perfume", description: "Handcrafted in small batches from home-grown roses and homemade rose water.", url: "/" },
+  twitter: { card: "summary", title: "Rose of Berlin | Handmade Rose Perfume", description: "Handcrafted rose perfume and body oil by Selesitina Gloger." },
+  robots: { index: true, follow: true },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon.png", type: "image/png", sizes: "512x512" }],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 
@@ -27,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de">
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

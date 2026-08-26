@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 const catalog = {
-  parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "15 ml": 590, "20 ml": 1249, "30 ml": 1860, "50 ml": 2450, "100 ml": 3570 } },
+  parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   oil: { label: "Rose of Berlin · Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
 } as const;
 
@@ -9,7 +9,7 @@ function validEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(va
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { email?: string; product?: keyof typeof catalog; size?: string; quantity?: number; website?: string };
+    const body = await request.json() as { email?: string; product?: keyof typeof catalog; size?: string; quantity?: number; website?: string; currency?: string; displayedTotal?: string; language?: string };
     if (body.website) return Response.json({ ok: true }, { status: 201 });
     const email = body.email?.trim().toLowerCase() ?? "";
     const item = body.product ? catalog[body.product] : undefined;
@@ -32,6 +32,9 @@ export async function POST(request: Request) {
           Menge: String(quantity),
           Einzelpreis: `${(price / 100).toFixed(2).replace(".", ",")} €`,
           Gesamt: `${((price * quantity) / 100).toFixed(2).replace(".", ",")} €`,
+          "Angezeigte Währung": body.currency ?? "EUR",
+          "Angezeigter Gesamtbetrag": body.displayedTotal ?? "–",
+          Sprache: body.language ?? "en",
           "Kunden-E-Mail": email,
           _replyto: email,
           _template: "table",
