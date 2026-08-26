@@ -70,12 +70,32 @@ export default function Home() {
   async function submitInterest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setStatus("sending"); setMessage("");
     const honeypot = new FormData(event.currentTarget).get("website")?.toString() ?? "";
+    if (honeypot) { setStatus("success"); setMessage(t.success); return; }
     try {
-      const response = await fetch("/api/interesse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, size: option.size, quantity, email, website: honeypot, currency, displayedTotal: formatMoney(total), language }) });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(data.error || t.error);
+      const response = await fetch("https://formsubmit.co/ajax/wagloger@web.de", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({
+          _subject: `Neue Kaufanfrage: ${label(product)} ${option.size}`,
+          Produkt: label(product),
+          Größe: option.size,
+          Menge: String(quantity),
+          Einzelpreis: `${option.price.toFixed(2).replace(".", ",")} €`,
+          Gesamt: `${total.toFixed(2).replace(".", ",")} €`,
+          "Angezeigte Währung": currency,
+          "Angezeigter Gesamtbetrag": formatMoney(total),
+          Sprache: language,
+          "Kunden-E-Mail": email.trim().toLowerCase(),
+          _replyto: email.trim().toLowerCase(),
+          _template: "table",
+          _captcha: "false",
+        }),
+      });
+      const data = (await response.json()) as { success?: string | boolean; message?: string };
+      const sent = response.ok && (data.success === true || data.success === "true");
+      if (!sent) throw new Error(data.message || t.error);
       setStatus("success"); setMessage(t.success); setEmail("");
-    } catch (error) { setStatus("error"); setMessage(error instanceof Error ? error.message : t.error); }
+    } catch { setStatus("error"); setMessage(t.error); }
   }
 
   return <main>
