@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { getDb } from "../../../db";
-import { purchaseInterests } from "../../../db/schema";
+export const runtime = "nodejs";
 
 const catalog = {
   parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "15 ml": 590, "20 ml": 1249, "30 ml": 1860, "50 ml": 2450, "100 ml": 3570 } },
@@ -22,8 +20,6 @@ export async function POST(request: Request) {
       return Response.json({ error: "Bitte prüfe deine Auswahl und E-Mail-Adresse." }, { status: 400 });
     }
 
-    const db = await getDb();
-    const [interest] = await db.insert(purchaseInterests).values({ email, product: item.label, size: body.size, quantity, unitPriceCents: price }).returning({ id: purchaseInterests.id });
     let notificationStatus = "failed";
     try {
       const notification = await fetch("https://formsubmit.co/ajax/wagloger@web.de", {
@@ -45,11 +41,13 @@ export async function POST(request: Request) {
       notificationStatus = notification.ok ? "sent" : "failed";
     } catch { notificationStatus = "failed"; }
 
-    await db.update(purchaseInterests).set({ notificationStatus }).where(eq(purchaseInterests.id, interest.id));
+    if (notificationStatus !== "sent") {
+      return Response.json({ error: "Die Benachrichtigung konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 502 });
+    }
+
     return Response.json({ ok: true, notificationStatus }, { status: 201 });
   } catch (error) {
-    const detail = error instanceof Error ? error.message : "unknown error";
-    if (detail.includes("no such table")) return Response.json({ error: "Die Anfragefunktion wird gerade vorbereitet. Bitte versuche es in wenigen Minuten erneut." }, { status: 503 });
+    console.error("[api/interesse] Kaufanfrage fehlgeschlagen", error);
     return Response.json({ error: "Die Anfrage konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 500 });
   }
 }
