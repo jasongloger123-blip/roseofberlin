@@ -30,9 +30,13 @@ h1 em,h2 em { font-weight:400; }
 .text-link { padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,.75); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 .text-link span { margin-left:8px; }
 .hero-visual { min-width:0; min-height:720px; margin:0; position:relative; overflow:hidden; }
-.hero-visual img { height:100%; object-fit:cover; object-position:center; }
-.hero-visual:after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(82,36,34,.12),transparent 40%); }
-.hero-visual figcaption { position:absolute; z-index:1; right:30px; bottom:28px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
+.hero-visual>img { height:100%; object-fit:cover; object-position:center; }
+.hero-visual:after { content:""; position:absolute; z-index:1; inset:0; pointer-events:none; background:linear-gradient(90deg,rgba(82,36,34,.12),transparent 40%); }
+.hero-visual figcaption { position:absolute; z-index:3; right:30px; bottom:28px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
+.rose-petal-field { position:absolute; z-index:2; inset:0; overflow:hidden; opacity:0; pointer-events:none; contain:strict; transition:opacity .45s ease; }
+.rose-petal-field.is-ready { opacity:1; }
+.rose-petal { position:absolute; top:0; left:0; aspect-ratio:.78; background:center/contain no-repeat; transform-origin:50% 72%; user-select:none; will-change:transform; }
+.rose-pointer-light { position:absolute; top:0; left:0; width:300px; height:300px; border-radius:50%; opacity:0; background:radial-gradient(circle,rgba(255,243,233,.34) 0,rgba(244,177,181,.12) 34%,transparent 70%); mix-blend-mode:soft-light; will-change:transform,opacity; }
 
 .products-section { max-width:1440px; margin:auto; padding:120px 6vw 130px; }
 .section-heading { display:grid; grid-template-columns:1.25fr .75fr; column-gap:7vw; align-items:end; margin-bottom:62px; }
@@ -136,7 +140,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   .hero h1 { font-size:49px; }
   .intro { font-size:14px; }
   .hero-visual { min-height:430px; height:55vh; }
-  .hero-visual img { object-position:center 45%; }
+  .hero-visual>img { object-position:center 45%; }
   .hero-visual figcaption { right:20px; bottom:20px; }
   .products-section { padding:85px 22px; }
   .section-heading { margin-bottom:40px; }
@@ -163,4 +167,14 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   .maker-copy { padding:50px 0 0; }
   footer { grid-template-columns:1fr; gap:22px; padding:40px 24px; }
   .legal { padding:38px 24px; }
+}
+
+@media (pointer:coarse) {
+  .rose-petal[data-mobile-hidden="true"] { display:none; }
+  .rose-pointer-light { display:none; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  .rose-petal-field { display:none; }
 }
