@@ -1,3 +1,4 @@
+import { metadataBaseUrl } from "../lib/site-url";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://roseofberlin-git-main-jasongloger123-5906s-projects.vercel.app"),
+  metadataBase: new URL(metadataBaseUrl()),
   title: { default: "Rose of Berlin | Handmade Rose Perfume", template: "%s | Rose of Berlin" },
   description: "Handmade rose perfume and body oil by Selesitina Gloger, crafted in small batches from home-grown roses and homemade rose water.",
   keywords: ["Rose of Berlin", "handmade perfume", "rose perfume", "rose water", "body oil", "Selesitina Gloger", "Hohenhameln"],

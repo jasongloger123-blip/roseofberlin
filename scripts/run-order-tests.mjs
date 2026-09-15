@@ -1,0 +1,10 @@
+import { build } from "esbuild";
+import { mkdir, rm } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+const dir = new URL("../.sites-runtime/order-tests/", import.meta.url);
+await mkdir(dir, { recursive: true });
+const output = new URL("orders.test.mjs", dir);
+await build({ entryPoints: ["tests/orders.test.ts"], bundle: true, platform: "node", format: "esm", packages: "external", outfile: output.pathname });
+const run = spawnSync(process.execPath, ["--test", output.pathname], { stdio: "inherit", env: process.env });
+await rm(output, { force: true });
+process.exitCode = run.status ?? 1;

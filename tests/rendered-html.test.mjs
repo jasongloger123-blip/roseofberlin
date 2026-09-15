@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
+const productionCanonical = /<link(?=[^>]*rel="canonical")(?=[^>]*href="https:\/\/roseofberlin\.de\/")[^>]*>/i;
 
-test("renders development preview metadata", async () => {
+test("renders production metadata and the complete purchase enquiry", async () => {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
@@ -29,5 +28,9 @@ test("renders development preview metadata", async () => {
     response.headers.get("content-type") ?? "",
     /^text\/html\b/i,
   );
-  assert.match(await response.text(), developmentPreviewMeta);
+  const html = await response.text();
+  assert.match(html, productionCanonical);
+  assert.match(html, /name="addressLine1"/);
+  assert.match(html, /Phone number \(optional\)/);
+  assert.doesNotMatch(html, /formsubmit\.co|vercel\.app/);
 });

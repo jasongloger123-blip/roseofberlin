@@ -1,67 +1,21 @@
+import { createOrder } from "../../../lib/orders/service";
+import { sendOrderEmails } from "../../../lib/orders/mail";
+import { errorResponse, json, rateLimit, readJson, sameOrigin } from "../../../lib/orders/http";
+import { idempotencyKey, parseOrder } from "../../../lib/orders/domain";
+import { orderDatabase } from "../../../lib/orders/runtime";
+
 export const runtime = "nodejs";
-
-const catalog = {
-  parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
-  oil: { label: "Rose of Berlin · Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
-} as const;
-
-function validEmail(value: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254; }
-
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { email?: string; product?: keyof typeof catalog; size?: string; quantity?: number; website?: string; currency?: string; displayedTotal?: string; language?: string };
-    if (body.website) return Response.json({ ok: true }, { status: 201 });
-    const email = body.email?.trim().toLowerCase() ?? "";
-    const item = body.product ? catalog[body.product] : undefined;
-    const quantity = Number(body.quantity);
-    const price = item && body.size ? item.prices[body.size as keyof typeof item.prices] : undefined;
-
-    if (!validEmail(email) || !item || !body.size || !price || !Number.isInteger(quantity) || quantity < 1 || quantity > 5) {
-      return Response.json({ error: "Bitte prüfe deine Auswahl und E-Mail-Adresse." }, { status: 400 });
-    }
-
-    let notificationStatus = "failed";
-    try {
-      const notification = await fetch("https://formsubmit.co/ajax/wagloger@web.de", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Origin: "https://roseofberlin.com",
-          Referer: "https://roseofberlin.com/",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: JSON.stringify({
-          _subject: `Neue Kaufanfrage: ${item.label} ${body.size}`,
-          Produkt: item.label,
-          Größe: body.size,
-          Menge: String(quantity),
-          Einzelpreis: `${(price / 100).toFixed(2).replace(".", ",")} €`,
-          Gesamt: `${((price * quantity) / 100).toFixed(2).replace(".", ",")} €`,
-          "Angezeigte Währung": body.currency ?? "EUR",
-          "Angezeigter Gesamtbetrag": body.displayedTotal ?? "–",
-          Sprache: body.language ?? "en",
-          "Kunden-E-Mail": email,
-          _replyto: email,
-          _template: "table",
-          _captcha: "false",
-        }),
-      });
-      const result = await notification.json() as { success?: string | boolean; message?: string };
-      notificationStatus = notification.ok && (result.success === true || result.success === "true") ? "sent" : "failed";
-      if (notificationStatus !== "sent") console.error("[api/interesse] FormSubmit rejected notification", { status: notification.status, message: result.message });
-    } catch (error) {
-      console.error("[api/interesse] FormSubmit request failed", error);
-      notificationStatus = "failed";
-    }
-
-    if (notificationStatus !== "sent") {
-      return Response.json({ error: "Die Benachrichtigung konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 502 });
-    }
-
-    return Response.json({ ok: true, notificationStatus }, { status: 201 });
-  } catch (error) {
-    console.error("[api/interesse] Kaufanfrage fehlgeschlagen", error);
-    return Response.json({ error: "Die Anfrage konnte nicht gesendet werden. Bitte versuche es später erneut." }, { status: 500 });
-  }
+    sameOrigin(request);
+    const input = await readJson(request);
+    if (input.website) return json({ ok: true }, 201);
+    const parsed = parseOrder(input), key = idempotencyKey(request.headers.get("Idempotency-Key"));
+    // Valid retries must not be throttled after a successful write.
+    const existing = await orderDatabase().prepare("SELECT id FROM orders WHERE idempotency_key=?").bind(key).first();
+    if (!existing) await rateLimit(request, parsed.email);
+    const { order, duplicate } = await createOrder(input, key);
+    try { await sendOrderEmails(order.id); } catch { console.error("[orders] mail_queue_pending"); }
+    return json({ ok: true, orderNumber: order.order_number, duplicate }, duplicate ? 200 : 201);
+  } catch (error) { return errorResponse(error); }
 }

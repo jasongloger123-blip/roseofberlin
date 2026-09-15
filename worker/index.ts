@@ -1,6 +1,7 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { withOrderEnvironment } from "../lib/orders/runtime";
 
 interface Env {
   ASSETS: Fetcher;
@@ -40,7 +41,15 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await withOrderEnvironment(env, true, () => handler.fetch(request, env, ctx));
+    if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/order/") || url.pathname.startsWith("/api/")) {
+      const protectedResponse = new Response(response.body, response);
+      protectedResponse.headers.set("Cache-Control", "private, no-store, max-age=0");
+      protectedResponse.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+      protectedResponse.headers.set("Referrer-Policy", "no-referrer");
+      return protectedResponse;
+    }
+    return response;
   },
 };
 

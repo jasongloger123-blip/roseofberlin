@@ -178,3 +178,17 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   html { scroll-behavior:auto; }
   .rose-petal-field { display:none; }
 }
+
+/* Checkout: readable controls and clear optional fields on small screens. */
+.order-form { min-width:0; }
+.order-form .field,.order-form legend { font-size:14px;letter-spacing:0;text-transform:none; }
+.order-form input,.order-form select { font-size:16px; }
+.order-form .form-note,.order-form .form-message { font-size:14px; }
+.order-form .button { font-size:14px;letter-spacing:.04em; }
+.order-form .form-note a { text-decoration:underline; }
+.address-fields { margin-top:28px!important; }
+.address-grid { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 14px; }
+.address-grid .full { grid-column:1/-1; }
+.choice:focus-within { outline:2px solid var(--ink);outline-offset:3px; }
+@media(max-width:480px) { .address-grid { grid-template-columns:1fr; }.order-form { padding:35px 22px; } }
+@media(max-width:680px){.order-intro{padding:32px 24px}.order-intro h2{font-size:36px}.order-intro .eyebrow{margin-bottom:14px}.order-intro>p:not(.eyebrow){margin-top:18px}.order-intro .shipping-note{margin-top:20px;padding-top:16px}}

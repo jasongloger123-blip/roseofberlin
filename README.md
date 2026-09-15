@@ -1,8 +1,14 @@
-# vinext-starter
+# Rose of Berlin
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Zweisprachige Produktwebsite mit serverseitigen Bestellungen, Cloudflare D1,
+geschützter Verwaltung unter `/admin/orders` und Resend-Transaktionsmails.
+Die Zahlungsübersicht lässt sich im Browser als PDF speichern.
+
+**Einrichtung und Betrieb:** [Bestellablauf, Migrationen, Variablen und DNS](docs/orders.md).
+Das Produktionsziel ist der bestehende Sites/Cloudflare-Worker; ein gewöhnliches
+Vercel-Deployment stellt dessen D1- und Identitätsbindungen nicht bereit.
+
+Technische Basis: [vinext](https://github.com/cloudflare/vinext) und Drizzle.
 
 ## Prerequisites
 
@@ -26,7 +32,7 @@ Scripts that need writable project-scoped home, npm, XDG, and temporary paths us
 - `.openai/hosting.json` declares optional Sites D1 and R2 bindings
 - `vite.config.ts` simulates declared bindings for local development
 - `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
+- `db/schema.ts` defines persisted orders, immutable line items and email events
 - `examples/d1/` contains an optional D1 example surface
 - `drizzle.config.ts` supports local migration generation when needed
 
@@ -94,7 +100,8 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 - `npm run dev`: start the Vite/Vinext development server
 - `npm run build`: build and validate the deployable Sites artifact
 - `npm run start`: start the built Vinext application
-- `npm test`: build, validate, and verify the rendered development-preview metadata
+- `npm test`: test order logic with real local D1, build, validate rendered HTML and exercise the compiled Worker end to end
+- `npm run test:orders`: run the focused order and email tests without rebuilding
 - `npm run validate:artifact`: recheck an existing artifact's manifest and ESM `default.fetch` export
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
