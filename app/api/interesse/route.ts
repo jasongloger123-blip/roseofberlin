@@ -5,9 +5,24 @@ import { idempotencyKey, parseOrder } from "../../../lib/orders/domain";
 import { orderDatabase } from "../../../lib/orders/runtime";
 
 export const runtime = "nodejs";
+
+// The public site is deployed on Vercel while the order worker owns the D1
+// database. Keep the database boundary in one place and forward the browser
+// request to the published worker when this route runs on Vercel.
+const ORDER_BACKEND_ORIGIN = (process.env.ORDER_BACKEND_URL || "https://selesitina-rosenparfum.jasooon-san.chatgpt.site").replace(/\/$/, "");
+
+async function forwardToOrderWorker(request: Request) {
+  const body = await request.arrayBuffer();
+  const headers = new Headers(request.headers);
+  headers.set("origin", ORDER_BACKEND_ORIGIN);
+  headers.delete("host");
+  return fetch(`${ORDER_BACKEND_ORIGIN}/api/interesse`, { method: "POST", headers, body });
+}
+
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
+    if (process.env.VERCEL === "1") return forwardToOrderWorker(request);
     const input = await readJson(request);
     if (input.website) return json({ ok: true }, 201);
     const parsed = parseOrder(input), key = idempotencyKey(request.headers.get("Idempotency-Key"));
