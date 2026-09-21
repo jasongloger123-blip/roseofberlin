@@ -19,9 +19,9 @@ const fallbackRates: Record<Currency, number> = { EUR: 1, USD: 1.17, AUD: 1.8, N
 const copy = {
   en: {
     nav: ["Products", "Craft", "Selesitina"], choose: "Choose", origin: "Hand-selected in Hohenhameln",
-    hero: <>A fragrance that<br /><em>begins with the rose.</em></>, intro: "Rose of Berlin is created from home-grown roses and homemade rose water — handcrafted in small batches.",
+    hero: <>A fragrance that<br /><em>begins with the rose.</em></>, intro: "Perfume and body oil made from all-natural ingredients — with home-grown roses and homemade rose water, handcrafted in small batches.",
     select: "Choose a product", story: "Our story", collection: "The collection", made: <>Made by hand.<br /><em>Bottled for you.</em></>, collectionText: "Every bottle belongs to a small batch. Choose your preferred size and send a purchase enquiry.",
-    parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "A floral rose fragrance made with home-grown roses and our own rose water.", oil: "Skin & Body Oil", oilTitle: "Rose care", oilDesc: "A handmade rose-scented care oil for gentle everyday moments.",
+    parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "A floral rose fragrance made from all-natural ingredients, with home-grown roses and our own rose water.", oil: "Skin & Body Oil", oilTitle: "Rose care", oilDesc: "A handmade body oil made from all-natural ingredients, with a rose scent for gentle everyday moments.",
     chooseProduct: "Choose this product", prices: "Prices", currency: "Currency", approximate: "Converted prices are estimates. The final amount is agreed in EUR.",
     enquiry: "Purchase enquiry", easy: <>Your selection,<br /><em>made simple.</em></>, orderText: "Choose your product and enter your delivery address. You will receive an email confirmation. Selesitina will then check availability and shipping before sending your payment request.",
     shipping: "Shipping & additional costs", shippingText: "All prices exclude shipping. No VAT is charged. Currency conversion fees, payment-provider fees, import taxes and customs duties are not included and are paid by the customer.",
@@ -32,9 +32,9 @@ const copy = {
   },
   de: {
     nav: ["Produkte", "Handwerk", "Selesitina"], choose: "Auswählen", origin: "Handverlesen in Hohenhameln",
-    hero: <>Ein Duft, der<br /><em>bei der Rose beginnt.</em></>, intro: "Rose of Berlin entsteht aus selbst angebauten Rosen und eigenem Rosenwasser – in kleinen Mengen von Hand gefertigt.",
+    hero: <>Ein Duft, der<br /><em>bei der Rose beginnt.</em></>, intro: "Parfüm und Körperöl aus rein natürlichen Inhaltsstoffen – mit selbst angebauten Rosen und eigenem Rosenwasser, in kleinen Mengen von Hand gefertigt.",
     select: "Produkt auswählen", story: "Unsere Geschichte", collection: "Die Kollektion", made: <>Von Hand gemacht.<br /><em>Für dich abgefüllt.</em></>, collectionText: "Jede Flasche ist Teil einer kleinen Charge. Wähle deine gewünschte Größe und sende eine Kaufanfrage.",
-    parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "Ein floraler Rosenduft aus selbst angebauten Rosen und eigenem Rosenwasser.", oil: "Haut- & Körperöl", oilTitle: "Rosenpflege", oilDesc: "Ein handgemachtes Pflegeöl mit Rosenduft für sanfte Momente im Alltag.",
+    parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "Ein floraler Rosenduft aus rein natürlichen Inhaltsstoffen, mit selbst angebauten Rosen und eigenem Rosenwasser.", oil: "Haut- & Körperöl", oilTitle: "Rosenpflege", oilDesc: "Ein handgemachtes Körperöl aus rein natürlichen Inhaltsstoffen mit Rosenduft für sanfte Momente im Alltag.",
     chooseProduct: "Dieses Produkt wählen", prices: "Preise", currency: "Währung", approximate: "Umrechnungen sind unverbindlich. Der endgültige Betrag wird in Euro vereinbart.",
     enquiry: "Kaufanfrage", easy: <>Deine Auswahl,<br /><em>ganz unkompliziert.</em></>, orderText: "Wähle dein Produkt und gib deine Lieferadresse an. Du erhältst eine Bestätigung per E-Mail. Selesitina prüft anschließend Verfügbarkeit und Versand und sendet dir die Zahlungsanforderung.",
     shipping: "Versand & Zusatzkosten", shippingText: "Alle Preise verstehen sich ohne Versandkosten. Es wird keine Mehrwertsteuer berechnet. Wechselkursgebühren, Gebühren des Zahlungsanbieters, Einfuhrabgaben und Zölle sind nicht enthalten und werden vom Kunden getragen.",
