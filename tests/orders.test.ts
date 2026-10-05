@@ -20,7 +20,7 @@ const env: OrderEnvironment = { PUBLIC_BASE_URL: "https://roseofberlin.de", ORDE
 const headers = { "Content-Type": "application/json", Origin: "https://roseofberlin.de", "oai-authenticated-user-id": "local-test-admin", "oai-authenticated-user-email": "admin@example.test" };
 const run = <T>(fn: () => T, extra: Partial<OrderEnvironment> = {}) => withOrderEnvironment({ ...env, DB: db, ...extra }, true, fn);
 const newOrder = () => createOrder(input, crypto.randomUUID());
-let emails: { body: { to: string[]; subject: string; html: string; text: string }; key: string }[] = [];
+let emails: { body: { reply_to: string; to: string[]; subject: string; html: string; text: string }; key: string }[] = [];
 const originalFetch = globalThis.fetch;
 function mockMail(status = 200) {
   globalThis.fetch = (async (url: string | URL | Request, options?: RequestInit) => {
@@ -192,3 +192,24 @@ test("email imports remain unconfirmed drafts and discard extracted price fields
   const draft = prepareEmailDraft("message-1", { product: "oil", quantity: "2", total: "1" } as never);
   assert.equal(draft.customerConfirmed, false); assert.equal("total" in draft.proposedFields, false);
 });
+
+// Inspect the actual provider request, including snapshots created before sending.
+test("order emails route seller replies to customers and customer replies to the seller", async () => run(async () => {
+  emails = []; mockMail();
+  const { order } = await newOrder();
+  await sendOrderEmails(order.id);
+  const internal = emails.find(e => e.body.to.includes(env.ORDER_NOTIFICATION_EMAIL!))!.body;
+  assert.equal(internal.reply_to, input.email);
+  assert.match(internal.html, /mailto:orders@example.test/);
+  assert.match(internal.text, /Kunden-E-Mail: orders@example.test/);
+  const checked = await editOrder(order.id, { version: order.version, shippingCents: 490, availabilityConfirmed: true, sellerNote: "" });
+  const payment = await requestPayment(checked.id, { version: checked.version });
+  await sendOrderEmails(order.id);
+  const paid = await transitionOrder(payment.id, { version: payment.version, status: "paid" });
+  const processing = await transitionOrder(paid.id, { version: paid.version, status: "processing" });
+  await transitionOrder(processing.id, { version: processing.version, status: "shipped" });
+  await sendOrderEmails(order.id);
+  const customer = emails.filter(e => e.body.to.includes(input.email));
+  assert.equal(customer.length, 4);
+  for (const email of customer) assert.equal(email.body.reply_to, env.ORDER_NOTIFICATION_EMAIL);
+}));

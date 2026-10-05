@@ -112,6 +112,15 @@ Zahlungsdaten und Bestellnummer als Verwendungszweck. Der zufällige Link unter
 PDF speichern“ wird der Browserdruck verwendet. Das Dokument ist eine
 Zahlungsübersicht, keine automatisierte steuerliche Rechnung.
 
+## Antworten auf Bestell-E-Mails
+
+Interne Kaufanfragen setzen `reply_to` auf die Kundenadresse und zeigen diese
+zusätzlich im HTML- und Textinhalt. „Antworten“ im Postfach schreibt direkt an
+den Kunden. Kundenmails (Eingang, Zahlung und Versand) setzen `reply_to` auf
+`ORDER_NOTIFICATION_EMAIL`, damit Antworten Selesitina erreichen.
+Die verifizierte Absenderadresse bleibt `ORDER_FROM_EMAIL`. Bereits zugestellte
+E-Mails und eingefrorene Versand-Payloads werden nicht nachträglich verändert.
+
 ## Ablauf für Selesitina
 
 1. `/admin/orders` öffnen, mit der freigeschalteten ChatGPT-Adresse anmelden.
