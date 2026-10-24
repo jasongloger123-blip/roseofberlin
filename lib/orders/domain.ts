@@ -1,9 +1,12 @@
 export const statuses = ["received", "needs_review", "awaiting_payment", "paid", "processing", "shipped", "cancelled"] as const;
 export type OrderStatus = typeof statuses[number];
 export type Language = "de" | "en";
+export const christmasOfferEndsAt = Date.parse("2026-12-25T23:00:00Z");
+export const christmasOfferAvailable = (now = Date.now()) => now < christmasOfferEndsAt;
 export const catalog = {
   parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   oil: { label: "Rose of Berlin · Skin & Body Oil / Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
+  christmas: { label: "Rose of Berlin · Christmas Geschenkset / Gift Set", prices: { "100 ml + 100 ml": 6000 } },
 } as const;
 export class OrderError extends Error {
   constructor(public code: string, public status = 400) { super(code); }
@@ -23,7 +26,7 @@ function field(data: Record<string, unknown>, name: string, max: number, optiona
 export function validEmail(email: string): boolean {
   return email.length <= 254 && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email);
 }
-export function parseOrder(value: unknown) {
+export function parseOrder(value: unknown, now = Date.now()) {
   const data = record(value);
   // Reject payment inputs instead of silently accepting a tampered checkout.
   for (const key of ["price", "unitPriceCents", "subtotalCents", "shippingCents", "totalCents", "total", "displayedTotal", "currency", "status", "payment", "bank"]) {
@@ -31,6 +34,7 @@ export function parseOrder(value: unknown) {
   }
   const product = field(data, "product", 30);
   if (!Object.hasOwn(catalog, product)) throw new OrderError("invalid_product");
+  if (product === "christmas" && !christmasOfferAvailable(now)) throw new OrderError("offer_expired");
   const item = catalog[product as keyof typeof catalog];
   const size = field(data, "size", 20);
   if (!Object.hasOwn(item.prices, size)) throw new OrderError("invalid_size");

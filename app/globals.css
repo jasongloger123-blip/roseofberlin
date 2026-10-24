@@ -192,3 +192,9 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .choice:focus-within { outline:2px solid var(--ink);outline-offset:3px; }
 @media(max-width:480px) { .address-grid { grid-template-columns:1fr; }.order-form { padding:35px 22px; } }
 @media(max-width:680px){.order-intro{padding:32px 24px}.order-intro h2{font-size:36px}.order-intro .eyebrow{margin-bottom:14px}.order-intro>p:not(.eyebrow){margin-top:18px}.order-intro .shipping-note{margin-top:20px;padding-top:16px}}
+
+/* Seasonal collection: original product photography and existing rose palette. */
+.christmas-section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,6vw,90px);padding:85px 7vw;background:#f0e2d7;align-items:center}
+.gift-gallery{min-width:0}.gift-main{height:490px;object-fit:contain;background:#e9d6c9;border-radius:3px}.gift-thumbnails{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:12px}.gift-thumbnails button{padding:3px;background:transparent;border:2px solid transparent;cursor:pointer;border-radius:3px}.gift-thumbnails button[aria-pressed="true"]{border-color:var(--rose-dark)}.gift-thumbnails img{height:70px;object-fit:cover}.gift-thumbnails button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.gift-copy h2{font:clamp(36px,4vw,60px)/1.07 Georgia,serif;letter-spacing:-.04em;margin:0 0 25px}.gift-copy>p{font-size:15px;line-height:1.75;max-width:460px}.gift-price{display:flex;align-items:center;gap:22px;margin:28px 0 16px;flex-wrap:wrap}.gift-price strong{font:36px Georgia,serif}.gift-price span{font-size:14px}.gift-deadline{font-weight:700}.gift-copy .gift-shipping{font-size:12px;margin-top:14px}.gift-copy .button:disabled{cursor:default}
+@media(max-width:680px){.christmas-section{grid-template-columns:1fr;padding:55px 22px;gap:32px}.gift-main{height:370px}.gift-thumbnails{gap:3px}.gift-thumbnails img{height:52px}.gift-copy h2{font-size:39px}}

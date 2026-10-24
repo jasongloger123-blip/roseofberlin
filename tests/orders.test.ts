@@ -213,3 +213,11 @@ test("order emails route seller replies to customers and customer replies to the
   assert.equal(customer.length, 4);
   for (const email of customer) assert.equal(email.body.reply_to, env.ORDER_NOTIFICATION_EMAIL);
 }));
+
+ test("Christmas set uses server pricing and closes after December 25 in Berlin", () => {
+ const gift = { ...input, product: "christmas", size: "100 ml + 100 ml", quantity: 2 };
+ const lastMoment = Date.parse("2026-12-25T22:59:59Z");
+ assert.equal(parseOrder(gift, lastMoment).subtotalCents, 12000);
+ assert.throws(() => parseOrder({ ...gift, totalCents: 1 }, lastMoment), OrderError);
+ assert.throws(() => parseOrder(gift, Date.parse("2026-12-25T23:00:00Z")), (error: unknown) => error instanceof OrderError && error.code === "offer_expired");
+ });
