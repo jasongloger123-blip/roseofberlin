@@ -19,7 +19,7 @@ for (const path of routes) for (const lang of ["de","en"]) test(`${lang} ${path}
  assert.equal(response.status,200);
  const links=tags(html,"link");
  assert.equal(links.filter(tag=>attribute(tag,"rel")==="canonical").length,1);
- assert.equal(attribute(links.find(tag=>attribute(tag,"rel")==="canonical"),"href"),`${canonicalOrigin}${path}${query}`);
+ assert.equal(new URL(attribute(links.find(tag=>attribute(tag,"rel")==="canonical"),"href")).href,new URL(`${canonicalOrigin}${path}${query}`).href);
  for(const locale of ["de","en","x-default"]) assert.ok(links.some(tag=>attribute(tag,"hreflang")===locale),locale);
  const description=tags(html,"meta").find(tag=>attribute(tag,"name")==="description"); assert.ok(attribute(description,"content")?.length>50);
  assert.ok(tags(html,"meta").some(tag=>attribute(tag,"property")==="og:image"));
