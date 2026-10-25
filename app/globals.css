@@ -267,3 +267,13 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .maker-portrait>img{display:block;width:100%;height:auto;max-width:none;transform:translateY(-19.23828125%)}
 .maker-copy h2{font-size:clamp(36px,4.7vw,64px);line-height:1.06}
 @media(max-width:680px){.maker-section{padding:55px 22px}.maker-portrait{max-width:360px}.maker-copy{padding:32px 0 0}}
+
+/* Custom rose emblem and compact signature wordmark. */
+.brand-logo{display:inline-flex;align-items:center;gap:10px;flex-shrink:0;color:var(--ink)}
+.brand-logo>img{width:38px;height:46px;flex-shrink:0}
+.brand-lettering{display:flex;flex-direction:column;gap:5px}
+.brand-lettering>span{font:22px/1 Georgia,serif;letter-spacing:-.035em;white-space:nowrap}
+.brand-lettering>small{font:8px/1.2 Arial,sans-serif;letter-spacing:.21em;text-transform:uppercase}
+.brand-logo:focus-visible{outline:2px solid var(--rose-dark);outline-offset:6px}
+@media(max-width:680px){.brand-logo{gap:7px}.brand-logo>img{width:29px;height:38px}.brand-lettering>span{font-size:19px}.brand-lettering>small{font-size:7px;letter-spacing:.17em}.shop-header nav{display:none}}
+@media(max-width:360px){.shop-header{padding-left:16px;padding-right:16px}.brand-lettering>span{font-size:17px}.brand-logo{gap:5px}}
