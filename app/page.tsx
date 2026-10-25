@@ -1,11 +1,15 @@
-"use client";
-import { useEffect } from "react";
-import { copy } from "../lib/home-copy";
-import { productKeys } from "../lib/storefront";
-import { ProductTile, ShopFooter, ShopHeader, useGiftAvailable, useShopLanguage } from "../components/Storefront";
-import RosePetalField from "../components/RosePetalField";
-export default function Home() {
- const [language,setLanguage] = useShopLanguage(); const available = useGiftAvailable(); const t = copy[language];
- useEffect(() => { const redirects: Record<string,string> = { "#bestellen":"/warenkorb", "#impressum":"/impressum", "#datenschutz":"/datenschutz" }; const path = redirects[window.location.hash]; if (path) window.location.replace(`${path}${window.location.search}`); }, []);
- return <main className="storefront home-landing"><ShopHeader language={language} toggle={() => setLanguage(language === "de" ? "en" : "de")} /><section id="start" className="hero"><div className="hero-copy"><p className="eyebrow"><span className="hero-desktop">{t.origin}</span><span className="hero-mobile">Rose of Berlin</span></p><h1><span className="hero-desktop">{t.hero}</span><span className="hero-mobile">{language === "de" ? "Rosenduft." : "Rose fragrance."}<br /><em>{language === "de" ? "Handgemacht." : "Made by hand."}</em></span></h1><p className="intro"><span className="hero-desktop">{t.intro}</span><span className="hero-mobile">{language === "de" ? "Parfum & Körperöl aus Hohenhameln." : "Handmade perfume & body oil from Hohenhameln."}</span></p><div className="hero-actions"><a className="button primary" href={`/shop?lang=${language}`}><span className="hero-desktop">{language === "de" ? "Die Kollektion entdecken" : "Explore the collection"}</span><span className="hero-mobile">{language === "de" ? "Zum Shop" : "Shop the collection"} →</span></a><a className="text-link" href="#handwerk">{t.story} ↓</a></div></div><figure className="hero-visual"><img src="/rose-of-berlin-hero.jpeg" alt="Rose of Berlin Eau de Parfum surrounded by pink roses" /><RosePetalField /><figcaption>Red Rose · Selected by Selesitina</figcaption></figure></section><section className="home-collection" id="produkte"><div className="home-section-heading"><div><p className="eyebrow">{t.collection}</p><h2>{language === "de" ? "Finde deinen Rosenduft." : "Find your rose fragrance."}</h2></div><a className="text-link" href={`/shop?lang=${language}`}>{language === "de" ? "Zum Shop" : "Shop all"} →</a></div><div className="shop-grid">{productKeys.filter(key => key !== "christmas" || available).map(key => <ProductTile key={key} productKey={key} language={language} />)}</div></section><section id="handwerk" className="craft-section"><div className="craft-image"><img src="/craft-studio.webp" alt="Small-batch rose preparation and amber bottles" loading="lazy" /></div><div className="craft-copy"><p className="eyebrow">{t.garden}</p><h2>{t.grown}</h2><ol>{t.steps.map((step,index) => <li key={step[0]}><span>0{index+1}</span><div><h3>{step[0]}</h3><p>{step[1]}</p></div></li>)}</ol></div></section><section id="selesitina" className="maker-section"><div className="maker-portrait"><img src="/selesitina-tatafu-gloger.webp" alt="Selesitina Tatafu Gloger, die Herstellerin von Rose of Berlin" width={944} height={2048} loading="lazy" /></div><div className="maker-copy"><p className="eyebrow">{t.maker}</p><h2>Selesitina Tatafu Gloger</h2><p className="maker-lead">{t.makerLead}</p><p>{t.makerText}</p><a className="text-link" href={`/shop?lang=${language}`}>{language === "de" ? "Die Kollektion" : "The collection"} →</a></div></section><ShopFooter language={language} /></main>;
+import HomePage from "../components/HomePage";
+import StructuredData from "../components/StructuredData";
+import { absoluteUrl, homeDescriptions, localizedPath, pageMetadata, searchLanguage, type SearchParams } from "../lib/seo";
+type Props = { searchParams: Promise<SearchParams> };
+export async function generateMetadata({ searchParams }: Props) {
+ const language = searchLanguage(await searchParams);
+ return pageMetadata("/",language,language === "de" ? "Rose of Berlin · Handgemachtes Rosenparfum & Körperöl" : "Rose of Berlin · Handmade rose perfume & body oil",homeDescriptions[language]);
+}
+export default async function Page({ searchParams }: Props) {
+ const language = searchLanguage(await searchParams);
+ return <><StructuredData data={{"@context":"https://schema.org","@graph":[
+  {"@type":"WebSite","@id":absoluteUrl("/#website"),name:"Rose of Berlin",alternateName:"Rose of Berlin by Selesitina",url:absoluteUrl("/"),inLanguage:["de","en"],publisher:{"@id":absoluteUrl("/#organization")}},
+  {"@type":"WebPage","@id":`${absoluteUrl(localizedPath("/",language))}#webpage`,url:absoluteUrl(localizedPath("/",language)),name:language === "de" ? "Handgemachtes Rosenparfum & Körperöl" : "Handmade rose perfume & body oil",description:homeDescriptions[language],inLanguage:language,isPartOf:{"@id":absoluteUrl("/#website")},about:{"@id":absoluteUrl("/#organization")}},
+ ]}} /><HomePage initialLanguage={language} /></>;
 }

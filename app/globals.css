@@ -30,7 +30,7 @@ h1 em,h2 em { font-weight:400; }
 .text-link { padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,.75); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 .text-link span { margin-left:8px; }
 .hero-visual { min-width:0; min-height:720px; margin:0; position:relative; overflow:hidden; }
-.hero-visual>img { height:100%; object-fit:cover; object-position:center; }
+.hero-visual>picture{display:block;width:100%;height:100%}.hero-visual>picture>img{height:100%;object-fit:cover;object-position:center}
 .hero-visual:after { content:""; position:absolute; z-index:1; inset:0; pointer-events:none; background:linear-gradient(90deg,rgba(82,36,34,.12),transparent 40%); }
 .hero-visual figcaption { position:absolute; z-index:3; right:30px; bottom:28px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
 .rose-petal-field { position:absolute; z-index:2; inset:0; overflow:hidden; opacity:0; pointer-events:none; contain:strict; transition:opacity .45s ease; }
@@ -140,7 +140,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   .hero h1 { font-size:49px; }
   .intro { font-size:14px; }
   .hero-visual { min-height:430px; height:55vh; }
-  .hero-visual>img { object-position:center 45%; }
+  .hero-visual>picture>img{object-position:center 45%}
   .hero-visual figcaption { right:20px; bottom:20px; }
   .products-section { padding:85px 22px; }
   .section-heading { margin-bottom:40px; }
@@ -256,8 +256,8 @@ footer p { margin:0; color:#80665f; font-size:12px; }
  .home-landing .hero-actions{gap:0}
  .home-landing .hero-actions>.text-link{display:none}
  .home-landing .hero-actions .button{min-height:46px;padding:0 22px;font-size:11px;letter-spacing:.08em}
- .home-landing .hero-visual{height:clamp(180px,29svh,240px);min-height:0}
- .home-landing .hero-visual>img{height:100%;object-fit:cover;object-position:center 55%}
+ .home-landing .hero-visual{height:auto;aspect-ratio:3/2;min-height:0}
+ .home-landing .hero-visual>picture>img{height:100%;object-fit:contain;object-position:center}
  .home-landing .hero-visual figcaption{display:none}
 }
 @media(max-width:360px){.home-landing .hero-copy{padding:22px 20px}.home-landing .hero .intro{font-size:13px}.home-landing>.shop-header{padding-inline:16px;gap:9px}}
@@ -277,3 +277,5 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .brand-logo:focus-visible{outline:2px solid var(--rose-dark);outline-offset:6px}
 @media(max-width:680px){.brand-logo{gap:7px}.brand-logo>img{width:29px;height:38px}.brand-lettering>span{font-size:19px}.brand-lettering>small{font-size:7px;letter-spacing:.17em}.shop-header nav{display:none}}
 @media(max-width:360px){.shop-header{padding-left:16px;padding-right:16px}.brand-lettering>span{font-size:17px}.brand-logo{gap:5px}}
+
+.home-faq{padding:75px 6vw;max-width:1100px;margin:auto}.home-faq h2{font:clamp(32px,4vw,46px)/1.1 Georgia,serif;margin:0 0 35px}.home-faq details{border-top:1px solid var(--line);padding:21px 0}.home-faq summary{cursor:pointer;font:21px/1.35 Georgia,serif}.home-faq details p{max-width:720px;font-size:14px;line-height:1.8;color:#725851}.footer-links{flex-wrap:wrap}.footer-links a{white-space:nowrap}@media(max-width:680px){.home-faq{padding:50px 22px}.home-faq summary{font-size:19px}.footer-links{gap:16px}}

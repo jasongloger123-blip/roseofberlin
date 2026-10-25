@@ -30,7 +30,7 @@ test("renders the storefront without embedding checkout on the homepage", async 
   );
   const html = await response.text();
   assert.match(html, productionCanonical);
-  assert.match(html, /Explore the collection/);
+  assert.match(html, /Die Kollektion entdecken/);
   assert.match(html, /\/shop/);
   assert.doesNotMatch(html, /name="addressLine1"/);
   for (const path of ["/shop", "/warenkorb", "/kasse", "/impressum", "/datenschutz"]) {

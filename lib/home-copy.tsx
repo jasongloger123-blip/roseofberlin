@@ -1,7 +1,7 @@
 export const copy = {
   en: {
     nav: ["Products", "Craft", "Selesitina"], choose: "Choose", origin: "Hand-selected in Hohenhameln",
-    hero: <>A fragrance that<br /><em>begins with the rose.</em></>, intro: "Perfume and body oil made from all-natural ingredients — with home-grown roses and homemade rose water, handcrafted in small batches.",
+    hero: <>Handmade perfume.<br /><em>Rooted in roses.</em></>, intro: "Perfume and body oil made from all-natural ingredients — with home-grown roses and homemade rose water, handcrafted in small batches.",
     select: "Choose a product", story: "Our story", collection: "The collection", made: <>Made by hand.<br /><em>Bottled for you.</em></>, collectionText: "Every bottle belongs to a small batch. Choose your preferred size and send a purchase enquiry.",
     parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "A floral rose fragrance made from all-natural ingredients, with home-grown roses and our own rose water.", oil: "Skin & Body Oil", oilTitle: "Rose care", oilDesc: "A handmade body oil made from all-natural ingredients, with a rose scent for gentle everyday moments.",
     chooseProduct: "Choose this product", prices: "Prices", currency: "Currency", approximate: "Converted prices are estimates. The final amount is agreed in EUR.",
@@ -14,7 +14,7 @@ export const copy = {
   },
   de: {
     nav: ["Produkte", "Handwerk", "Selesitina"], choose: "Auswählen", origin: "Handverlesen in Hohenhameln",
-    hero: <>Ein Duft, der<br /><em>bei der Rose beginnt.</em></>, intro: "Parfüm und Körperöl aus rein natürlichen Inhaltsstoffen – mit selbst angebauten Rosen und eigenem Rosenwasser, in kleinen Mengen von Hand gefertigt.",
+    hero: <>Handgemachtes<br /><em>Rosenparfum & Körperöl.</em></>, intro: "Parfüm und Körperöl aus rein natürlichen Inhaltsstoffen – mit selbst angebauten Rosen und eigenem Rosenwasser, in kleinen Mengen von Hand gefertigt.",
     select: "Produkt auswählen", story: "Unsere Geschichte", collection: "Die Kollektion", made: <>Von Hand gemacht.<br /><em>Für dich abgefüllt.</em></>, collectionText: "Jede Flasche ist Teil einer kleinen Charge. Wähle deine gewünschte Größe und sende eine Kaufanfrage.",
     parfum: "Eau de Parfum", parfumTitle: "Rose of Berlin", parfumDesc: "Ein floraler Rosenduft aus rein natürlichen Inhaltsstoffen, mit selbst angebauten Rosen und eigenem Rosenwasser.", oil: "Haut- & Körperöl", oilTitle: "Rosenpflege", oilDesc: "Ein handgemachtes Körperöl aus rein natürlichen Inhaltsstoffen mit Rosenduft für sanfte Momente im Alltag.",
     chooseProduct: "Dieses Produkt wählen", prices: "Preise", currency: "Währung", approximate: "Umrechnungen sind unverbindlich. Der endgültige Betrag wird in Euro vereinbart.",
