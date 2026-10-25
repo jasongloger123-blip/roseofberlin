@@ -261,3 +261,9 @@ footer p { margin:0; color:#80665f; font-size:12px; }
  .home-landing .hero-visual figcaption{display:none}
 }
 @media(max-width:360px){.home-landing .hero-copy{padding:22px 20px}.home-landing .hero .intro{font-size:13px}.home-landing>.shop-header{padding-inline:16px;gap:9px}}
+
+/* Show the original portrait without the phone gallery interface. */
+.maker-portrait{width:100%;max-width:420px;aspect-ratio:944/1260;overflow:hidden;justify-self:center;background:#44362e;border-radius:3px}
+.maker-portrait>img{display:block;width:100%;height:auto;max-width:none;transform:translateY(-19.23828125%)}
+.maker-copy h2{font-size:clamp(36px,4.7vw,64px);line-height:1.06}
+@media(max-width:680px){.maker-section{padding:55px 22px}.maker-portrait{max-width:360px}.maker-copy{padding:32px 0 0}}
