@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description: "Handgemachtes Rosenparfum und Körperöl von Selesitina Tatafu Gloger aus Hohenhameln. Mit Rosen aus dem eigenen Garten und selbst hergestelltem Rosenwasser.",
   authors: [{ name: "Selesitina Tatafu Gloger" }],
   creator: "Selesitina Tatafu Gloger",
+  verification: { google: "glPkhssh_XugipLNP6ZGsWSmSJEZdHQWf2r52SUNaw8" },
   openGraph: { type: "website", locale: "de_DE", alternateLocale: ["en_GB"], siteName: "Rose of Berlin", title: "Rose of Berlin | Handgemachtes Rosenparfum & Körperöl", description: "Handgemachtes Rosenparfum und Körperöl aus Hohenhameln.", url: "/", images: [{ url: "/rose-of-berlin-hero-mobile.webp", alt: "Rose of Berlin Rosenparfum" }] },
   twitter: { card: "summary_large_image", title: "Rose of Berlin | Handgemachtes Rosenparfum & Körperöl", description: "Handgemachtes Rosenparfum und Körperöl von Selesitina Tatafu Gloger.", images: ["/rose-of-berlin-hero-mobile.webp"] },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
