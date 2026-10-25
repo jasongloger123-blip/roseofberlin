@@ -241,3 +241,23 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .home-landing .hero-copy{padding-top:95px;padding-bottom:95px}.home-collection{padding:105px 0 115px}.home-section-heading{padding:0 6vw 45px;display:flex;align-items:end;justify-content:space-between;gap:30px}.home-section-heading h2{font:clamp(36px,4.5vw,60px)/1.05 Georgia,serif;letter-spacing:-.035em;margin:0}.home-section-heading .text-link{white-space:nowrap;border-color:var(--ink)}.standalone-legal{max-width:850px;margin:auto;padding:80px 6vw 110px}.standalone-legal h1{font:52px Georgia,serif;margin:0 0 32px}.standalone-legal>p:last-child{font-size:15px;line-height:1.95;white-space:pre-line}.standalone-legal a{text-decoration:underline}
 @media(max-width:900px){.cart-layout,.checkout-layout{grid-template-columns:1fr}.cart-totals{position:static}.cart-item{grid-template-columns:100px minmax(0,1fr) auto}.cart-item>a img{width:100px;height:125px}}
 @media(max-width:680px){.cart-link span{display:none}.cart-link{gap:6px}.shop-header .header-tools{gap:8px}.shop-header nav{font-size:10px}.cart-heading{padding:48px 22px 28px}.cart-heading h1{font-size:46px}.cart-layout,.checkout-layout{padding:0 22px 65px;gap:38px}.cart-item{grid-template-columns:82px minmax(0,1fr);gap:16px;padding:24px 0}.cart-item>a img{width:82px;height:104px}.cart-line-total{grid-column:2;font-size:20px;padding-top:0}.cart-item h2{font-size:24px}.cart-item-copy .eyebrow{font-size:8px;letter-spacing:.12em}.cart-item-actions{gap:16px;margin-top:13px}.cart-totals{padding:25px}.cart-totals h2{font-size:30px}.cart-empty,.checkout-success{padding:30px 22px 75px}.cart-empty h2,.checkout-success h2{font-size:34px}.checkout-form legend{font-size:27px}.checkout-terms{padding:22px}.checkout-submit{font-size:11px}.home-landing .hero-copy{padding-top:65px;padding-bottom:65px}.home-collection{padding:65px 0 75px}.home-section-heading{padding:0 22px 30px;align-items:start;flex-direction:column;gap:20px}.home-section-heading h2{font-size:41px}.standalone-legal{padding:55px 22px 75px}.standalone-legal h1{font-size:42px}}
+
+/* Mobile hero: brand, product, one action and photography in the first view. */
+.hero-mobile{display:none}
+@media(max-width:680px){
+ .home-landing>.shop-header{height:64px;padding-inline:20px}
+ .home-landing .hero{min-height:0;grid-template-columns:1fr}
+ .home-landing .hero-copy{padding:26px 22px 24px}
+ .home-landing .hero-desktop{display:none}
+ .home-landing .hero-mobile{display:inline}
+ .home-landing .hero .eyebrow{margin:0 0 12px;font-size:10px;letter-spacing:.18em}
+ .home-landing .hero h1{font-size:clamp(33px,9.8vw,42px);line-height:1.03;letter-spacing:-.035em}
+ .home-landing .hero .intro{margin:14px 0 20px;font-size:14px;line-height:1.5;max-width:340px}
+ .home-landing .hero-actions{gap:0}
+ .home-landing .hero-actions>.text-link{display:none}
+ .home-landing .hero-actions .button{min-height:46px;padding:0 22px;font-size:11px;letter-spacing:.08em}
+ .home-landing .hero-visual{height:clamp(180px,29svh,240px);min-height:0}
+ .home-landing .hero-visual>img{height:100%;object-fit:cover;object-position:center 55%}
+ .home-landing .hero-visual figcaption{display:none}
+}
+@media(max-width:360px){.home-landing .hero-copy{padding:22px 20px}.home-landing .hero .intro{font-size:13px}.home-landing>.shop-header{padding-inline:16px;gap:9px}}
