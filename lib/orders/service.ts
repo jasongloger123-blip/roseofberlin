@@ -6,7 +6,8 @@ import { emailPayload, paymentDetails } from "./templates";
 
 export async function createOrder(input: unknown, key: string | null) {
   const parsed = parseOrder(input), token = idempotencyKey(key);
-  const fingerprint = await hash(JSON.stringify(parsed)), db = orderDatabase();
+  const { items, ...legacyParsed } = parsed;
+  const fingerprint = await hash(JSON.stringify("items" in record(input) ? parsed : legacyParsed)), db = orderDatabase();
   const previous = await db.prepare("SELECT * FROM orders WHERE idempotency_key=?").bind(token).first<Order>();
   if (previous) {
     if (previous.request_hash !== fingerprint) throw new OrderError("idempotency_conflict", 409);
@@ -18,8 +19,8 @@ export async function createOrder(input: unknown, key: string | null) {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING`).bind(
       id, token, fingerprint, secureToken(), parsed.customerName, parsed.email, parsed.phone || null, parsed.addressLine1, parsed.addressLine2 || null, parsed.postalCode, parsed.city, parsed.country, parsed.language, parsed.subtotalCents, now, now),
     db.prepare("UPDATE orders SET order_number = 'ROB-' || ? || '-' || printf('%06d', sequence) WHERE id=?").bind(String(year), id),
-    db.prepare(`INSERT INTO order_items (id,order_id,product_key,product_label,size,quantity,unit_price_cents,line_total_cents)
-      SELECT ?,id,?,?,?,?,?,? FROM orders WHERE id=?`).bind(crypto.randomUUID(), parsed.product, parsed.productLabel, parsed.size, parsed.quantity, parsed.unitPriceCents, parsed.subtotalCents, id),
+    ...items.map(item => db.prepare(`INSERT INTO order_items (id,order_id,product_key,product_label,size,quantity,unit_price_cents,line_total_cents)
+      SELECT ?,id,?,?,?,?,?,? FROM orders WHERE id=?`).bind(crypto.randomUUID(), item.product, item.productLabel, item.size, item.quantity, item.unitPriceCents, item.subtotalCents, id)),
     ...(["received", "internal"] as const).map(kind => db.prepare(`INSERT INTO order_email_events (id,order_id,kind,dedupe_key,created_at) SELECT ?,id,?,?,? FROM orders WHERE id=?`)
       .bind(crypto.randomUUID(), kind, `${id}/${kind}`, now, id)),
   ]);

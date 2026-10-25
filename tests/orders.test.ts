@@ -221,3 +221,35 @@ test("order emails route seller replies to customers and customer replies to the
  assert.throws(() => parseOrder({ ...gift, totalCents: 1 }, lastMoment), OrderError);
  assert.throws(() => parseOrder(gift, Date.parse("2026-12-25T23:00:00Z")), (error: unknown) => error instanceof OrderError && error.code === "offer_expired");
  });
+
+test("mixed cart persists every line with a server-calculated total and one order", async () => run(async () => {
+  const { product, size, quantity, ...contact } = input;
+  void product; void size; void quantity;
+  const cart = { ...contact, items: [{ product: "parfum", size: "50 ml", quantity: 2 }, { product: "oil", size: "100 ml", quantity: 1 }] };
+  const parsed = parseOrder(cart);
+  assert.equal(parsed.subtotalCents, 8480);
+  const key = crypto.randomUUID();
+  const first = await createOrder(cart,key);
+  assert.equal(first.order.subtotal_cents,8480);
+  const lines = await getItems(first.order.id);
+  assert.equal(lines.length,2);
+  assert.equal(lines.reduce((sum,line) => sum + line.line_total_cents,0),8480);
+  const repeated = await createOrder({ ...cart, items: [...cart.items].reverse() },key);
+  assert.equal(repeated.order.id,first.order.id);
+  assert.equal(repeated.duplicate,true);
+  const events = await getEvents(first.order.id);
+  assert.equal(events.length,2);
+  const draft = await import("../lib/orders/templates");
+  const email = draft.emailPayload(events.find(event => event.kind === "received")!,first.order,lines);
+  assert.match(email.text,/50 ml × 2/);
+  assert.match(email.text,/100 ml × 1/);
+}));
+test("cart rejects empty, tampered and over-limit line items", () => {
+  const { product, size, quantity, ...contact } = input;
+  void product; void size; void quantity;
+  const item = { product:"oil",size:"100 ml",quantity:1 };
+  for (const items of [[],[null],[{...item,price:1}],[{...item,quantity:6}],[{...item,quantity:3},{...item,quantity:3}],[{...item,size:"500 ml"}],Array(13).fill(item)]) assert.throws(() => parseOrder({...contact,items}),OrderError);
+  assert.throws(() => parseOrder({...input,items:[item]}),OrderError);
+  const merged = parseOrder({...contact,items:[item,item]});
+  assert.equal(merged.items.length,1); assert.equal(merged.subtotalCents,3000);
+});

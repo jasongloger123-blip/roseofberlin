@@ -32,15 +32,33 @@ export function parseOrder(value: unknown, now = Date.now()) {
   for (const key of ["price", "unitPriceCents", "subtotalCents", "shippingCents", "totalCents", "total", "displayedTotal", "currency", "status", "payment", "bank"]) {
     if (key in data) throw new OrderError("server_pricing_only");
   }
-  const product = field(data, "product", 30);
-  if (!Object.hasOwn(catalog, product)) throw new OrderError("invalid_product");
-  if (product === "christmas" && !christmasOfferAvailable(now)) throw new OrderError("offer_expired");
-  const item = catalog[product as keyof typeof catalog];
-  const size = field(data, "size", 20);
-  if (!Object.hasOwn(item.prices, size)) throw new OrderError("invalid_size");
-  const unitPriceCents = (item.prices as Record<string, number>)[size];
-  const quantity = data.quantity;
-  if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 5) throw new OrderError("invalid_quantity");
+  if ("items" in data && ["product", "size", "quantity"].some(key => key in data)) throw new OrderError("mixed_order_format");
+  const rawItems = "items" in data ? data.items : [data];
+  if (!Array.isArray(rawItems) || rawItems.length < 1 || rawItems.length > 12) throw new OrderError("invalid_items");
+  const items: { product: string; productLabel: string; size: string; quantity: number; unitPriceCents: number; subtotalCents: number }[] = [];
+  for (const rawItem of rawItems) {
+    const line = record(rawItem);
+    for (const key of ["price", "unitPriceCents", "subtotalCents", "totalCents", "total", "currency"]) {
+      if (key in line) throw new OrderError("server_pricing_only");
+    }
+    const product = field(line, "product", 30);
+    if (!Object.hasOwn(catalog, product)) throw new OrderError("invalid_product");
+    if (product === "christmas" && !christmasOfferAvailable(now)) throw new OrderError("offer_expired");
+    const item = catalog[product as keyof typeof catalog];
+    const size = field(line, "size", 20);
+    if (!Object.hasOwn(item.prices, size)) throw new OrderError("invalid_size");
+    const unitPriceCents = (item.prices as Record<string, number>)[size];
+    const quantity = line.quantity;
+    if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1 || quantity > 5) throw new OrderError("invalid_quantity");
+    const existing = items.find(item => item.product === product && item.size === size);
+    if (existing) {
+      existing.quantity += quantity;
+      if (existing.quantity > 5) throw new OrderError("invalid_quantity");
+      existing.subtotalCents = existing.quantity * unitPriceCents;
+    } else items.push({ product, productLabel: item.label, size, quantity, unitPriceCents, subtotalCents: unitPriceCents * quantity });
+  }
+  items.sort((a,b) => a.product.localeCompare(b.product) || a.size.localeCompare(b.size));
+  const { product, productLabel, size, quantity, unitPriceCents } = items[0];
   const email = field(data, "email", 254).toLowerCase();
   if (!validEmail(email)) throw new OrderError("invalid_email");
   const country = field(data, "country", 2).toUpperCase();
@@ -54,8 +72,8 @@ export function parseOrder(value: unknown, now = Date.now()) {
     phone: field(data, "phone", 40, true),
     addressLine1: field(data, "addressLine1", 200), addressLine2: field(data, "addressLine2", 200, true),
     postalCode: field(data, "postalCode", 20), city: field(data, "city", 100), country,
-    language: data.language as Language, product, productLabel: item.label, size, quantity,
-    unitPriceCents, subtotalCents: unitPriceCents * quantity,
+    language: data.language as Language, product, productLabel, size, quantity,
+    unitPriceCents, subtotalCents: items.reduce((sum, item) => sum + item.subtotalCents, 0), items,
   };
 }
 export function idempotencyKey(value: string | null): string {

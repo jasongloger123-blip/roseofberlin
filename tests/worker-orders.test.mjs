@@ -16,7 +16,7 @@ test("compiled Worker runs checkout, admin, payment document and fulfilment with
     const ctx = { waitUntil() {}, passThroughOnException() {} };
     const adminHeaders = { "oai-authenticated-user-id": "local-admin", "oai-authenticated-user-email": "admin@example.test" };
     const fetchWorker = (path, body, admin = false, key) => worker.fetch(new Request(`https://roseofberlin.de${path}`, { headers: { ...(body ? { "Content-Type": "application/json", Origin: "https://roseofberlin.de" } : {}), ...(admin ? adminHeaders : {}), ...(key ? { "Idempotency-Key": key } : {}) }, ...(body ? { method: "POST", body: JSON.stringify(body) } : {}) }), env, ctx);
-    const input = { product: "parfum", size: "50 ml", quantity: 2, firstName: "Maria", lastName: "Beispiel", email: "worker-qa@example.test", addressLine1: "Musterstraße 12", postalCode: "31137", city: "Hildesheim", country: "DE", language: "de" };
+    const input = { items: [{ product: "parfum", size: "50 ml", quantity: 2 }, { product: "oil", size: "100 ml", quantity: 1 }], firstName: "Maria", lastName: "Beispiel", email: "worker-qa@example.test", addressLine1: "Musterstraße 12", postalCode: "31137", city: "Hildesheim", country: "DE", language: "de" };
     const key = crypto.randomUUID();
     const create = await fetchWorker("/api/interesse", input, false, key); assert.equal(create.status, 201);
     const receipt = await create.json(); assert.match(receipt.orderNumber, /^ROB-\d{4}-\d{6}$/);
@@ -26,13 +26,14 @@ test("compiled Worker runs checkout, admin, payment document and fulfilment with
     const row = (await list.json()).orders[0];
     const adminPage = await fetchWorker("/admin/orders", undefined, true); assert.equal(adminPage.status, 200); assert.match(adminPage.headers.get("cache-control"), /no-store/);
     const detail = await (await fetchWorker(`/api/admin/orders/${row.id}`, undefined, true)).json();
+    assert.equal(detail.items.length, 2);
     const edited = await fetchWorker(`/api/admin/orders/${row.id}`, { action: "edit", version: detail.order.version, shippingCents: 590, availabilityConfirmed: true, sellerNote: "not public" }, true); assert.equal(edited.status, 200);
     const version = (await edited.json()).order.version;
     const payment = await fetchWorker(`/api/admin/orders/${row.id}`, { action: "payment", version }, true); assert.equal(payment.status, 200);
-    const payData = await payment.json(); assert.equal(payData.order.total_cents, 7570);
+    const payData = await payment.json(); assert.equal(payData.order.total_cents, 9070);
     assert.match(payData.paymentPath, /^\/order\/[a-f0-9]{64}\/payment$/);
     const document = await fetchWorker(payData.paymentPath); assert.equal(document.status, 200);
-    const html = await document.text(); assert.match(html, /75,70/); assert.match(html, /paypal-fixture@example.test/); assert.doesNotMatch(html, /not public/);
+    const html = await document.text(); assert.match(html, /90,70/); assert.match(html, /paypal-fixture@example.test/); assert.doesNotMatch(html, /not public/);
     if (process.env.ORDER_QA_FIXTURES === "1") await writeFile(".sites-runtime/payment-qa.html", html);
     let currentVersion = payData.order.version;
     for (const status of ["paid", "processing", "shipped"]) {
