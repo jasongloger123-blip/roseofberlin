@@ -1,4 +1,5 @@
 import { metadataBaseUrl } from "../lib/site-url";
+import AnalyticsConsent from "../components/AnalyticsConsent";
 import StructuredData from "../components/StructuredData";
 import type { Metadata } from "next";
 import "./globals.css";
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <StructuredData data={{ "@context":"https://schema.org", "@type":"Organization", "@id":`${metadataBaseUrl()}/#organization`, name:"Rose of Berlin", url:metadataBaseUrl(), logo:{"@type":"ImageObject",url:`${metadataBaseUrl()}/icon.png`}, founder:{"@type":"Person",name:"Selesitina Tatafu Gloger"}, email:"wagloger@web.de", address:{"@type":"PostalAddress",streetAddress:"Angerweg 15",postalCode:"31249",addressLocality:"Hohenhameln",addressCountry:"DE"} }} />
         {children}
+        <AnalyticsConsent />
       </body>
     </html>
   );
