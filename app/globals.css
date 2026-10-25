@@ -362,3 +362,10 @@ footer p { margin:0; color:#80665f; font-size:12px; }
  .detail-copy details,.detail-sizes,.detail-quantity{scroll-margin-bottom:110px}
  .shop-tile-image img,.related-grid .shop-tile-image img{height:240px}
 }
+
+/* Desktop photography has room to fill its frame without narrow side gutters. */
+@media(min-width:901px){
+ .home-landing .hero-visual{height:clamp(520px,74svh,740px)}
+ .home-landing .hero-visual>picture>img{object-fit:cover;object-position:center}
+ .shop-tile-image img,.product-card>img,.related-grid .shop-tile-image img{height:auto;max-height:none;aspect-ratio:1;object-fit:cover;object-position:center}
+}
