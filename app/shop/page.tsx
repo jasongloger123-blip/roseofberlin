@@ -6,7 +6,7 @@ import { christmasOfferAvailable } from "../../lib/orders/domain";
 type Props = { searchParams: Promise<SearchParams> };
 export async function generateMetadata({searchParams}:Props) {
  const language=searchLanguage(await searchParams);
- return pageMetadata("/shop",language,language === "de" ? "Rosenparfum, Körperöl & Geschenksets entdecken" : "Shop rose perfume, body oil & gift sets",language === "de" ? "Die Rose of Berlin Kollektion: handgemachtes Eau de Parfum ab 19,90 €, Körperöl ab 9 € und Weihnachtssets. Von Selesitina in Hohenhameln gefertigt." : "Discover the Rose of Berlin collection: handmade Eau de Parfum from €19.90, body oil from €9 and Christmas gift sets by Selesitina in Hohenhameln.");
+ return pageMetadata("/shop",language,language === "de" ? "Rosenparfum, Körperöl & Bio-Rosentee entdecken" : "Shop rose perfume, body oil & organic rose tea",language === "de" ? "Handgemachtes Rosenparfum, Körperöl und Bio-Rosentee aus Hohenhameln. 10 Teebeutel für 9,90 €. Die Kollektion von Selesitina entdecken." : "Handmade rose perfume, body oil and organic rose tea from Hohenhameln, Germany. 10 tea bags for €9.90. Discover the collection by Selesitina.");
 }
 export default async function ShopPage({searchParams}:Props) {
  const language=searchLanguage(await searchParams);

@@ -4,6 +4,7 @@ export type Language = "de" | "en";
 export const christmasOfferEndsAt = Date.parse("2026-12-25T23:00:00Z");
 export const christmasOfferAvailable = (now = Date.now()) => now < christmasOfferEndsAt;
 export const catalog = {
+  tea: { label: "Rose of Berlin · Bio-Rosentee / Organic rose tea · Made in Germany", prices: { "10 Teebeutel": 990 } },
   parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   oil: { label: "Rose of Berlin · Skin & Body Oil / Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
   christmas: { label: "Rose of Berlin · Christmas Geschenkset / Gift Set", prices: { "100 ml + 100 ml": 6000 } },

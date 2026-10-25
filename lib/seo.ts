@@ -21,6 +21,7 @@ export function pageMetadata(path: string, language: ShopLanguage, title: string
  };
 }
 export const productTitles: Record<ProductKey, Record<ShopLanguage,string>> = {
+ tea: { de: "Bio-Rosentee · 10 handgemachte Teebeutel · Made in Germany", en: "Organic rose tea · 10 handmade tea bags · Made in Germany" },
  parfum: { de: "Rosenparfum · Handgemachtes Eau de Parfum", en: "Rose perfume · Handmade Eau de Parfum" },
  oil: { de: "Rosenpflege · Handgemachtes Haut- & Körperöl", en: "Rose care · Handmade skin & body oil" },
  christmas: { de: "Weihnachts-Geschenkset · Rosenparfum 2 × 100 ml", en: "Christmas gift set · Rose perfume 2 × 100 ml" },
@@ -29,7 +30,7 @@ export function productStructuredData(key: ProductKey, language: ShopLanguage) {
  const product = products[key];
  const path = `/produkte/${product.slug}`;
  const url = absoluteUrl(localizedPath(path,language));
- const common = { name: `${product.name} · ${product.category[language]}`, description: `${product.description[language]} ${product.detail[language]}`, image: [absoluteUrl(product.image)], brand: { "@type":"Brand", name:"Rose of Berlin" }, manufacturer:{"@id":absoluteUrl("/#organization")} };
+ const common = { ...(key === "tea" ? { countryOfOrigin: { "@type":"Country", name:"Germany" } } : {}), name: `${product.name} · ${product.category[language]}`, description: `${product.description[language]} ${product.detail[language]}`, image: [absoluteUrl(product.image)], brand: { "@type":"Brand", name:"Rose of Berlin" }, manufacturer:{"@id":absoluteUrl("/#organization")} };
  const variant = (option: typeof product.options[number]) => {
   const variantUrl = new URL(url); variantUrl.searchParams.set("size",option.size);
   return { "@type":"Product", ...common, name: `${product.name} · ${product.category[language]} · ${option.size}`, sku:`ROB-${key}-${option.size.replace(/\s/g,"")}`, size:option.size, url:variantUrl.href,

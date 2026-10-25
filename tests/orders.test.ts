@@ -253,3 +253,21 @@ test("cart rejects empty, tampered and over-limit line items", () => {
   const merged = parseOrder({...contact,items:[item,item]});
   assert.equal(merged.items.length,1); assert.equal(merged.subtotalCents,3000);
 });
+
+test("rose tea pack is priced on the server, persisted and included in confirmations", async () => run(async () => {
+  const tea = { ...input, product: "tea", size: "10 Teebeutel", quantity: 2 };
+  const parsed = parseOrder(tea);
+  assert.equal(parsed.subtotalCents, 1980);
+  assert.throws(() => parseOrder({ ...tea, size: "1 Teebeutel" }), OrderError);
+  const first = await createOrder(tea,crypto.randomUUID());
+  const items = await getItems(first.order.id);
+  assert.equal(items.length,1);
+  assert.equal(items[0].product_key,"tea");
+  assert.equal(items[0].unit_price_cents,990);
+  assert.equal(items[0].line_total_cents,1980);
+  const events = await getEvents(first.order.id);
+  const {emailPayload} = await import("../lib/orders/templates");
+  const email = emailPayload(events.find(event=>event.kind === "received")!,first.order,items);
+  assert.match(email.text,/Bio-Rosentee/);
+  assert.match(email.text,/10 Teebeutel × 2/);
+}));

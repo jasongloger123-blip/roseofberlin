@@ -12,7 +12,7 @@ const get = async path => {
 const tags = (html, tag) => [...html.matchAll(new RegExp(`<${tag}\\b[^>]*>`, "gi"))].map(match=>match[0]);
 const attribute = (tag, name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`,"i"))?.[1].replaceAll("&amp;","&");
 const schemas = html => [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)].flatMap(match=>{ const parsed=JSON.parse(match[1]); return parsed["@graph"] ?? [parsed]; });
-const routes = ["/", "/shop", "/produkte/rosenparfum", "/produkte/koerperoel", "/produkte/weihnachtsset"];
+const routes = ["/", "/shop", "/produkte/rosenparfum", "/produkte/koerperoel", "/produkte/weihnachtsset", "/produkte/bio-rosentee"];
 for (const path of routes) for (const lang of ["de","en"]) test(`${lang} ${path}: indexable server HTML and localized canonical`, async () => {
  const query=lang === "en" ? "?lang=en" : "";
  const {response,html}=await get(`${path}${query}`);
@@ -31,14 +31,14 @@ for (const path of routes) for (const lang of ["de","en"]) test(`${lang} ${path}
   const product=data.find(item=>["ProductGroup","Product"].includes(item["@type"])); assert.ok(product);
   assert.ok(data.some(item=>item["@type"]==="BreadcrumbList"));
   const variants=product.hasVariant ?? [product];
-  const expected=path.endsWith("rosenparfum") ? [19.9,24.9,34.9,49.9] : path.endsWith("koerperoel") ? [9,15] : [60];
+  const expected=path.endsWith("rosenparfum") ? [19.9,24.9,34.9,49.9] : path.endsWith("koerperoel") ? [9,15] : path.endsWith("bio-rosentee") ? [9.9] : [60];
   assert.deepEqual(variants.map(item=>Number(item.offers.price)),expected);
   variants.forEach(item=>{assert.equal(item.offers.priceCurrency,"EUR"); assert.ok(item.offers.url.includes("size="));});
  }
 });
 test("discovery files, private noindex and actual variant selection",async()=>{
  const {html:robots}=await get("/robots.txt"); assert.match(robots,/Allow: \/\n/);assert.match(robots,/Sitemap: https:\/\/roseofberlin.com\/sitemap.xml/);assert.doesNotMatch(robots,/Disallow: \/\s*$/m);
- const {html:sitemap}=await get("/sitemap.xml");assert.equal((sitemap.match(/<loc>/g)??[]).length,10);
+ const {html:sitemap}=await get("/sitemap.xml");assert.equal((sitemap.match(/<loc>/g)??[]).length,12);
  for(const path of routes) assert.ok(sitemap.includes(`${canonicalOrigin}${path}`));
  for(const path of ["/warenkorb","/kasse"]) {const {html}=await get(path);assert.match(html,/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i);}
  const {response}=await get("/produkte/unbekannt");assert.equal(response.status,404);
