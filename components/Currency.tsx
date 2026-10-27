@@ -53,9 +53,3 @@ export function CurrencySelector({ language }: { language: ShopLanguage }) {
   const { currency, rates, status } = useCurrency();
   return <label className="currency-selector"><span className="sr-only">{language === "de" ? "Währung auswählen" : "Choose currency"}</span><select aria-label={language === "de" ? "Währung auswählen" : "Choose currency"} value={rates[currency] ? currency : "EUR"} onChange={event => selectCurrency(event.target.value)}>{currencies.map(code => <option key={code} value={code} disabled={!rates[code]}>{code}</option>)}</select>{status === "loading" ? <span className="sr-only" role="status">{language === "de" ? "Wechselkurse werden geladen" : "Loading exchange rates"}</span> : null}</label>;
 }
-export function CurrencyNotice({ language }: { language: ShopLanguage }) {
-  const { currency, status, updatedAt } = useCurrency();
-  const de = language === "de";
-  if (status === "loading" || (status === "ready" && currency === "EUR")) return null;
-  return <p className="currency-notice" role="status">{status === "error" ? (de ? "Wechselkurse derzeit nicht verfügbar. Preise werden in EUR angezeigt." : "Exchange rates are currently unavailable. Prices are shown in EUR.") : <>{de ? "Umrechnung zur Orientierung. Der endgültige Betrag wird in EUR vereinbart." : "Converted prices are estimates. The final amount is agreed in EUR."}{updatedAt ? <> {de ? "Kursstand:" : "Rates as of:"} {new Intl.DateTimeFormat(de ? "de-DE" : "en-GB", { timeZone: "UTC" }).format(new Date(updatedAt))} · <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">ExchangeRate-API</a></> : null}</>}</p>;
-}

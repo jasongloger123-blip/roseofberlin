@@ -16,5 +16,5 @@ export function validRates(value: unknown): ExchangeRates {
 export function displayPrice(value: number, language: "de" | "en", currency: Currency, rates: ExchangeRates) {
   const selected = rates[currency] ? currency : "EUR";
   const amount = new Intl.NumberFormat(language === "de" ? "de-DE" : "en-IE", { style: "currency", currency: selected, currencyDisplay: selected === "EUR" ? "symbol" : "code" }).format(value * (rates[selected] ?? 1));
-  return selected === "EUR" ? amount : `≈ ${amount}`;
+  return amount;
 }
