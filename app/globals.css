@@ -377,3 +377,41 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .currency-selector select:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 @media(max-width:680px){.shop-header{flex-wrap:wrap;height:auto;min-height:74px;padding:12px 16px;row-gap:10px}.shop-header nav{display:none}.shop-header .header-tools{margin-left:auto;gap:6px}.currency-selector select{font-size:11px;width:72px;padding:0 27px 0 12px;background-position:right 12px center}.shop-language{padding:8px}}
 @media(max-width:360px){.shop-header .brand-lettering>span{font-size:15px}.shop-header .brand-logo{gap:6px}.shop-header .brand-logo img{width:30px;height:38px}.shop-header{padding-inline:10px}}
+
+.royal-visit {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 330px);
+  align-items:center;
+  justify-content:center;
+  gap:clamp(32px, 7vw, 100px);
+  padding:clamp(48px, 7vw, 100px) max(6vw, calc((100% - 1040px) / 2));
+  background:var(--cream);
+}
+.royal-visit-copy h2 {
+  margin:0;
+  font:clamp(34px, 4vw, 58px)/1.06 Georgia, serif;
+  letter-spacing:-.035em;
+}
+.royal-visit-copy p:not(.eyebrow) {
+  margin:20px 0 0;
+  font-size:15px;
+  line-height:1.7;
+}
+.royal-visit-video {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:9 / 16;
+  border-radius:3px;
+  background:var(--ink);
+}
+@media (max-width:680px) {
+  .royal-visit {
+    grid-template-columns:minmax(0, 1fr);
+    padding:44px 22px;
+  }
+  .royal-visit-video {
+    max-width:330px;
+    justify-self:center;
+  }
+}
