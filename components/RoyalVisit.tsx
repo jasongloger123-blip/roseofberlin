@@ -3,14 +3,14 @@ import type { ShopLanguage } from "../lib/storefront";
 const copy = {
   de: {
     occasion: "November 2026 · 150 Jahre Freundschaft zwischen Tonga und Deutschland",
-    title: "Rose of Berlin als Geschenk für König Tupou VI",
+    title: "König Tupou VI. von Tonga in Deutschland",
     visit: "Zum 150. Jubiläum des Freundschaftsvertrags zwischen Tonga und Deutschland besuchte uns König Tupou VI von Tonga in Deutschland. Ihn begleiteten Königin Nanasipau’u Tuku’aho und Kronprinz Tupouto’a ‘Ulukalala.",
     gift: "Bei der Begegnung überreichten wir dem König unser handgemachtes Rosenparfum Rose of Berlin. Das Video zeigt die Geschenkübergabe.",
     videoLabel: "Video der Geschenkübergabe an König Tupou VI",
   },
   en: {
     occasion: "November 2026 · 150 years of friendship between Tonga and Germany",
-    title: "Rose of Berlin as a gift for King Tupou VI",
+    title: "King Tupou VI of Tonga in Germany",
     visit: "To mark the 150th anniversary of the Treaty of Friendship between Tonga and Germany, King Tupou VI of Tonga visited us in Germany. He was accompanied by Queen Nanasipau’u Tuku’aho and Crown Prince Tupouto’a ‘Ulukalala.",
     gift: "During the visit, we presented the King with our handmade Rose of Berlin perfume. The video shows the presentation of the gift.",
     videoLabel: "Video of the gift presentation to King Tupou VI",
