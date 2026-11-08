@@ -2,16 +2,10 @@
 import { useSyncExternalStore } from "react";
 import { currencies, displayPrice, isCurrency, validRates, type Currency, type ExchangeRates } from "../lib/currencies";
 import type { ShopLanguage } from "../lib/storefront";
-import savedRates from "../lib/exchange-rates-snapshot.json";
 const key = "rose-of-berlin-currency-v1";
 type State = { currency: Currency; rates: ExchangeRates; updatedAt: string | null; status: "loading" | "ready" | "error" };
 const initial: State = { currency: "EUR", rates: { EUR: 1 }, updatedAt: null, status: "loading" };
 let state = initial;
-function recentSnapshot(): State {
-  return Date.now() - savedRates.time_last_update_unix * 1000 <= 7 * 86400000
-    ? { currency: "EUR", rates: validRates(savedRates.rates), updatedAt: new Date(savedRates.time_last_update_unix * 1000).toISOString(), status: "ready" }
-    : initial;
-}
 let started = false;
 const listeners = new Set<() => void>();
 function emit(next: State) { state = next; listeners.forEach(listener => listener()); }
@@ -21,14 +15,14 @@ function storedCurrency(): Currency {
 function start() {
   if (started) return;
   started = true;
-  emit({ ...recentSnapshot(), currency: storedCurrency() });
+  emit({ ...initial, currency: storedCurrency() });
   fetch("/api/exchange-rates").then(async response => {
     if (!response.ok) throw new Error("Rates unavailable");
     const data = await response.json();
     const rates = validRates(data.rates);
     if (!rates.USD || typeof data.updatedAt !== "string") throw new Error("Invalid rates");
     emit({ ...state, rates, updatedAt: data.updatedAt, status: "ready" });
-  }).catch(() => { if (state.status !== "ready") emit({ ...state, rates: { EUR: 1 }, status: "error" }); });
+  }).catch(() => { emit({ ...state, status: "error" }); });
 }
 function storage(event: StorageEvent) { if (event.key === key || event.key === null) emit({ ...state, currency: storedCurrency() }); }
 function subscribe(listener: () => void) {
