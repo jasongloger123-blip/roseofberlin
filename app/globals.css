@@ -371,58 +371,124 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 @media(max-width:360px){.shop-header .brand-lettering>span{font-size:15px}.shop-header .brand-logo{gap:6px}.shop-header .brand-logo img{width:30px;height:38px}.shop-header{padding-inline:10px}}
 
 .royal-visit {
+  --film-gold:#edbcaa;
+  color:#fff7ef;
+  background:radial-gradient(ellipse at 77% 44%, #61363e 0%, transparent 60%), #28191c;
+  padding:clamp(40px, 5.5vw, 84px) max(18px, 5vw);
+  scroll-margin-top:16px;
+}
+.royal-visit-inner {
   display:grid;
   grid-template:
-    "video heading" 1fr
-    "video story" 1fr
-    / clamp(360px, 33vw, 500px) minmax(0, 1fr);
-  column-gap:clamp(32px, 6vw, 90px);
-  row-gap:20px;
-  padding:clamp(36px, 5vw, 72px) max(4vw, calc((100% - 1200px) / 2));
-  background:var(--cream);
-  scroll-margin-top:16px;
+    "heading film" 1fr
+    "story film" 1fr
+    / minmax(0, 1fr) minmax(0, 1fr);
+  column-gap:clamp(32px, 7vw, 108px);
+  row-gap:26px;
+  max-width:1160px;
+  margin-inline:auto;
 }
 .royal-visit-copy {
   grid-area:heading;
   align-self:end;
 }
+.royal-visit-copy .eyebrow {
+  margin-bottom:18px;
+  color:var(--film-gold);
+  line-height:1.5;
+}
 .royal-visit-copy h2 {
   margin:0;
-  font:clamp(32px, 4vw, 58px)/1.06 Georgia, serif;
-  letter-spacing:-.035em;
+  font:clamp(36px, 5vw, 72px)/1.02 Georgia, serif;
+  letter-spacing:-.045em;
+}
+.royal-visit-copy h2 em {
+  display:block;
+  color:var(--film-gold);
 }
 .royal-visit-story {
   grid-area:story;
   align-self:start;
-  max-width:58ch;
+  max-width:49ch;
+  color:#f0dbd4;
   font-size:15px;
   line-height:1.7;
 }
 .royal-visit-story p {
   margin:0;
 }
-.royal-visit-story p + p {
-  margin-top:16px;
+.royal-visit-story .royal-visit-lead {
+  margin-bottom:12px;
+  color:#fff7ef;
+  font:clamp(21px, 2.4vw, 30px)/1.2 Georgia, serif;
+}
+.royal-visit-stage {
+  grid-area:film;
+  justify-self:center;
+  width:min(100%, 400px);
+  min-width:0;
+  margin:0;
+}
+.royal-visit-frame {
+  position:relative;
+  padding:6px;
+  border:1px solid #edbcaa70;
+  border-radius:14px;
+  background:#201418;
+  box-shadow:0 24px 52px #160d0e85;
 }
 .royal-visit-video {
-  grid-area:video;
   display:block;
   width:100%;
   height:auto;
   aspect-ratio:9 / 16;
   object-fit:contain;
-  border-radius:3px;
-  background:var(--ink);
+  border-radius:8px;
+  background:#201418;
 }
-@media (max-width:860px) {
+.royal-visit-play {
+  position:absolute;
+  top:50%;
+  left:50%;
+  translate:-50% -50%;
+  display:grid;
+  place-items:center;
+  width:66px;
+  height:66px;
+  border:1px solid #fff7ef;
+  border-radius:50%;
+  background:#28191ce8;
+  color:#fff7ef;
+  cursor:pointer;
+}
+.royal-visit-play:hover {
+  background:#fff7ef;
+  color:#28191c;
+}
+.royal-visit .royal-visit-play:focus-visible {
+  outline-color:#fff7ef;
+}
+.royal-visit-stage figcaption {
+  margin-top:16px;
+  color:var(--film-gold);
+  font-size:11px;
+  line-height:1.5;
+  letter-spacing:.1em;
+  text-align:center;
+  text-transform:uppercase;
+}
+@media (max-width:760px) {
   .royal-visit {
+    background:radial-gradient(ellipse at 50% 50%, #61363e 0%, transparent 66%), #28191c;
+  }
+  .royal-visit-inner {
     grid-template:
       "heading"
-      "video"
+      "film"
       "story"
-      / minmax(0, 460px);
-    justify-content:center;
-    padding:32px max(16px, 4vw);
+      / minmax(0, 1fr);
+    row-gap:22px;
+    max-width:460px;
   }
   .royal-visit-copy .eyebrow {
     margin-bottom:10px;
