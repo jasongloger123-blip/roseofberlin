@@ -101,14 +101,14 @@ h1 em,h2 em { font-weight:400; }
 .craft-copy li>span { color:var(--rose-dark); font:14px Georgia,serif; }
 .craft-copy h3 { margin:0 0 7px; font:25px Georgia,serif; }
 .craft-copy li p { margin:0; color:#765d56; font-size:13px; line-height:1.55; }
-.maker-section { display:grid; grid-template-columns:.7fr 1.3fr; align-items:center; background:#30211e; color:#fff; padding:100px max(6vw,30px); }
+.maker-section { display:grid; grid-template-columns:.7fr 1.3fr; align-items:center; background:linear-gradient(180deg, var(--cream), var(--paper)); color:var(--ink); padding:clamp(42px, 6vw, 84px) max(6vw,30px) 100px; }
 .maker-mark { max-width:380px; justify-self:center; }
 .maker-mark img { aspect-ratio:1; object-fit:contain; }
 .maker-copy { max-width:680px; padding-left:6vw; }
-.maker-copy .eyebrow { color:#e1aaa7; }
 .maker-copy h2 { margin:0 0 25px; font:clamp(48px,5vw,72px)/1 Georgia,serif; }
-.maker-copy p { max-width:570px; color:#eadbd5; font-size:15px; line-height:1.75; }
-.maker-copy .maker-lead { color:#fff; font:24px/1.35 Georgia,serif; }
+.maker-copy p { max-width:570px; color:#725851; font-size:15px; line-height:1.75; }
+.maker-copy .maker-lead { color:var(--ink); font:24px/1.35 Georgia,serif; }
+.maker-copy .text-link { border-color:currentColor; }
 
 footer { padding:50px 7vw; display:grid; grid-template-columns:1fr 1fr auto; align-items:center; border-bottom:1px solid var(--line); }
 footer p { margin:0; color:#80665f; font-size:12px; }
@@ -263,7 +263,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 @media(max-width:360px){.home-landing .hero-copy{padding:22px 20px}.home-landing .hero .intro{font-size:13px}.home-landing>.shop-header{padding-inline:16px;gap:9px}}
 
 /* The source is a phone screenshot. Show the entire photo area. */
-.maker-portrait{width:100%;min-width:0;aspect-ratio:944/1260;overflow:hidden;justify-self:center;background:#44362e;border-radius:3px}
+.maker-portrait{width:100%;min-width:0;aspect-ratio:944/1260;overflow:hidden;justify-self:center;background:var(--cream);border-radius:3px}
 .maker-portrait>img{display:block;width:100%;height:auto;max-width:none;transform:translateY(-19.23828125%)}
 .maker-copy h2{font-size:clamp(36px,4.7vw,64px);line-height:1.06}
 @media(max-width:680px){.maker-section{padding:55px 22px}.maker-copy{padding:32px 0 0}}
@@ -371,10 +371,10 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 @media(max-width:360px){.shop-header .brand-lettering>span{font-size:15px}.shop-header .brand-logo{gap:6px}.shop-header .brand-logo img{width:30px;height:38px}.shop-header{padding-inline:10px}}
 
 .royal-visit {
-  --film-gold:#edbcaa;
-  color:#fff7ef;
-  background:radial-gradient(ellipse at 77% 44%, #61363e 0%, transparent 60%), #28191c;
-  padding:clamp(40px, 5.5vw, 84px) max(18px, 5vw);
+  --visit-accent:#854c4d;
+  color:var(--ink);
+  background:linear-gradient(180deg, var(--paper) 0%, #f5e6e0 48%, var(--cream) 100%);
+  padding:clamp(32px, 5vw, 72px) max(18px, 5vw);
   scroll-margin-top:16px;
 }
 .royal-visit-inner {
@@ -394,7 +394,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 }
 .royal-visit-copy .eyebrow {
   margin-bottom:18px;
-  color:var(--film-gold);
+  color:var(--visit-accent);
   line-height:1.5;
 }
 .royal-visit-copy h2 {
@@ -404,13 +404,13 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 }
 .royal-visit-copy h2 em {
   display:block;
-  color:var(--film-gold);
+  color:var(--visit-accent);
 }
 .royal-visit-story {
   grid-area:story;
   align-self:start;
   max-width:49ch;
-  color:#f0dbd4;
+  color:#725851;
   font-size:15px;
   line-height:1.7;
 }
@@ -419,7 +419,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 }
 .royal-visit-story .royal-visit-lead {
   margin-bottom:12px;
-  color:#fff7ef;
+  color:var(--ink);
   font:clamp(21px, 2.4vw, 30px)/1.2 Georgia, serif;
 }
 .royal-visit-stage {
@@ -432,10 +432,10 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 .royal-visit-frame {
   position:relative;
   padding:6px;
-  border:1px solid #edbcaa70;
+  border:1px solid var(--line);
   border-radius:14px;
-  background:#201418;
-  box-shadow:0 24px 52px #160d0e85;
+  background:var(--white);
+  box-shadow:0 16px 34px #56342d26;
 }
 .royal-visit-video {
   display:block;
@@ -444,7 +444,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   aspect-ratio:9 / 16;
   object-fit:contain;
   border-radius:8px;
-  background:#201418;
+  background:var(--cream);
 }
 .royal-visit-play {
   position:absolute;
@@ -455,22 +455,22 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   place-items:center;
   width:66px;
   height:66px;
-  border:1px solid #fff7ef;
+  border:1px solid var(--white);
   border-radius:50%;
-  background:#28191ce8;
-  color:#fff7ef;
+  background:var(--paper);
+  color:var(--ink);
+  box-shadow:0 3px 14px #39231f50;
   cursor:pointer;
 }
 .royal-visit-play:hover {
-  background:#fff7ef;
-  color:#28191c;
+  background:var(--cream);
 }
 .royal-visit .royal-visit-play:focus-visible {
-  outline-color:#fff7ef;
+  outline-color:var(--white);
 }
 .royal-visit-stage figcaption {
   margin-top:16px;
-  color:var(--film-gold);
+  color:var(--visit-accent);
   font-size:11px;
   line-height:1.5;
   letter-spacing:.1em;
@@ -478,9 +478,6 @@ footer p { margin:0; color:#80665f; font-size:12px; }
   text-transform:uppercase;
 }
 @media (max-width:760px) {
-  .royal-visit {
-    background:radial-gradient(ellipse at 50% 50%, #61363e 0%, transparent 66%), #28191c;
-  }
   .royal-visit-inner {
     grid-template:
       "heading"
