@@ -24,6 +24,20 @@ function field(data: Record<string, unknown>, name: string, max: number, optiona
   if ((!optional && !result) || result.length > max || /[\u0000-\u001f\u007f]/.test(result)) throw new OrderError(`invalid_${name}`);
   return result;
 }
+const commonEmailDomainTypos = new Map([
+  ["gmail.xom", "gmail.com"], ["gmail.con", "gmail.com"], ["gmail.cmo", "gmail.com"],
+  ["gmal.com", "gmail.com"], ["gmial.com", "gmail.com"], ["gmai.com", "gmail.com"],
+  ["outlook.xom", "outlook.com"], ["outlook.con", "outlook.com"],
+  ["hotmail.xom", "hotmail.com"], ["hotmail.con", "hotmail.com"],
+  ["yahoo.xom", "yahoo.com"], ["yahoo.con", "yahoo.com"],
+  ["web.ed", "web.de"], ["gmx.ed", "gmx.de"],
+]);
+
+export function emailDomainSuggestion(email: string): string | undefined {
+  const at = email.lastIndexOf("@");
+  return at > 0 ? commonEmailDomainTypos.get(email.slice(at + 1).trim().toLowerCase()) : undefined;
+}
+
 export function validEmail(email: string): boolean {
   return email.length <= 254 && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email);
 }
