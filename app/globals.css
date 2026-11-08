@@ -26,7 +26,8 @@ nav { display:flex; gap:30px; font-size:11px; letter-spacing:.13em; text-transfo
 .hero h1,.section-heading h2,.order-intro h2,.craft-copy h2 { margin:0; font:clamp(48px,5vw,79px)/.98 Georgia,serif; letter-spacing:-.045em; }
 h1 em,h2 em { font-weight:400; }
 .intro { max-width:470px; margin:29px 0 36px; font-size:15px; line-height:1.75; }
-.hero-actions { display:flex; align-items:center; gap:28px; flex-wrap:wrap; }
+.hero-actions { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.royal-visit-link { border:1px solid currentColor; }
 .text-link { padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,.75); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 .text-link span { margin-left:8px; }
 .hero-visual { min-width:0; margin:0; position:relative; overflow:hidden; }
@@ -244,7 +245,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 @media(max-width:900px){.cart-layout,.checkout-layout{grid-template-columns:1fr}.cart-totals{position:static}.cart-item{grid-template-columns:100px minmax(0,1fr) auto}.cart-item>a img{width:100px;height:125px}}
 @media(max-width:680px){.cart-link span{display:none}.cart-link{gap:6px}.shop-header .header-tools{gap:8px}.shop-header nav{font-size:10px}.cart-heading{padding:48px 22px 28px}.cart-heading h1{font-size:46px}.cart-layout,.checkout-layout{padding:0 22px 65px;gap:38px}.cart-item{grid-template-columns:82px minmax(0,1fr);gap:16px;padding:24px 0}.cart-item>a img{width:82px;height:104px}.cart-line-total{grid-column:2;font-size:20px;padding-top:0}.cart-item h2{font-size:24px}.cart-item-copy .eyebrow{font-size:8px;letter-spacing:.12em}.cart-item-actions{gap:16px;margin-top:13px}.cart-totals{padding:25px}.cart-totals h2{font-size:30px}.cart-empty,.checkout-success{padding:30px 22px 75px}.cart-empty h2,.checkout-success h2{font-size:34px}.checkout-form legend{font-size:27px}.checkout-terms{padding:22px}.checkout-submit{font-size:11px}.home-landing .hero-copy{padding-top:65px;padding-bottom:65px}.home-collection{padding:65px 0 75px}.home-section-heading{padding:0 22px 30px;align-items:start;flex-direction:column;gap:20px}.home-section-heading h2{font-size:41px}.standalone-legal{padding:55px 22px 75px}.standalone-legal h1{font-size:42px}}
 
-/* Mobile hero: brand, product, one action and photography in the first view. */
+/* Mobile hero keeps the two actions and the photograph near the top. */
 .hero-mobile{display:none}
 @media(max-width:680px){
  .home-landing>.shop-header{height:64px;padding-inline:20px}
@@ -255,8 +256,7 @@ footer p { margin:0; color:#80665f; font-size:12px; }
  .home-landing .hero .eyebrow{margin:0 0 12px;font-size:10px;letter-spacing:.18em}
  .home-landing .hero h1{font-size:clamp(33px,9.8vw,42px);line-height:1.03;letter-spacing:-.035em}
  .home-landing .hero .intro{margin:14px 0 20px;font-size:14px;line-height:1.5;max-width:340px}
- .home-landing .hero-actions{gap:0}
- .home-landing .hero-actions>.text-link{display:none}
+ .home-landing .hero-actions{gap:10px}
  .home-landing .hero-actions .button{min-height:46px;padding:0 22px;font-size:11px;letter-spacing:.08em}
  .home-landing .hero-visual figcaption{display:none}
 }
@@ -372,38 +372,59 @@ footer p { margin:0; color:#80665f; font-size:12px; }
 
 .royal-visit {
   display:grid;
-  grid-template-columns:minmax(0, 1fr) minmax(0, 330px);
-  align-items:center;
-  justify-content:center;
-  gap:clamp(32px, 7vw, 100px);
-  padding:clamp(48px, 7vw, 100px) max(6vw, calc((100% - 1040px) / 2));
+  grid-template:
+    "video heading" 1fr
+    "video story" 1fr
+    / clamp(360px, 33vw, 500px) minmax(0, 1fr);
+  column-gap:clamp(32px, 6vw, 90px);
+  row-gap:20px;
+  padding:clamp(36px, 5vw, 72px) max(4vw, calc((100% - 1200px) / 2));
   background:var(--cream);
+  scroll-margin-top:16px;
+}
+.royal-visit-copy {
+  grid-area:heading;
+  align-self:end;
 }
 .royal-visit-copy h2 {
   margin:0;
-  font:clamp(34px, 4vw, 58px)/1.06 Georgia, serif;
+  font:clamp(32px, 4vw, 58px)/1.06 Georgia, serif;
   letter-spacing:-.035em;
 }
-.royal-visit-copy p:not(.eyebrow) {
-  margin:20px 0 0;
+.royal-visit-story {
+  grid-area:story;
+  align-self:start;
+  max-width:58ch;
   font-size:15px;
   line-height:1.7;
 }
+.royal-visit-story p {
+  margin:0;
+}
+.royal-visit-story p + p {
+  margin-top:16px;
+}
 .royal-visit-video {
+  grid-area:video;
   display:block;
   width:100%;
   height:auto;
   aspect-ratio:9 / 16;
+  object-fit:contain;
   border-radius:3px;
   background:var(--ink);
 }
-@media (max-width:680px) {
+@media (max-width:860px) {
   .royal-visit {
-    grid-template-columns:minmax(0, 1fr);
-    padding:44px 22px;
+    grid-template:
+      "heading"
+      "video"
+      "story"
+      / minmax(0, 460px);
+    justify-content:center;
+    padding:32px max(16px, 4vw);
   }
-  .royal-visit-video {
-    max-width:330px;
-    justify-self:center;
+  .royal-visit-copy .eyebrow {
+    margin-bottom:10px;
   }
 }

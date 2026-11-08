@@ -21,12 +21,10 @@ export default function RoyalVisit({ language }: { language: ShopLanguage }) {
   const text = copy[language];
 
   return (
-    <section id="koenigsbesuch" className="royal-visit" aria-labelledby="royal-visit-title">
+    <section id="koenigsbesuch" className="royal-visit" aria-labelledby="royal-visit-title" tabIndex={-1}>
       <div className="royal-visit-copy">
         <p className="eyebrow">{text.occasion}</p>
         <h2 id="royal-visit-title">{text.title}</h2>
-        <p>{text.visit}</p>
-        <p>{text.gift}</p>
       </div>
       <video
         className="royal-visit-video"
@@ -41,6 +39,10 @@ export default function RoyalVisit({ language }: { language: ShopLanguage }) {
         <source src="/koenigsbesuch-tonga.mp4" type="video/mp4" />
         <a href="/koenigsbesuch-tonga.mp4">{text.videoLabel}</a>
       </video>
+      <div className="royal-visit-story">
+        <p>{text.visit}</p>
+        <p>{text.gift}</p>
+      </div>
     </section>
   );
 }
