@@ -278,3 +278,45 @@ test("rose tea pack is priced on the server, persisted and included in confirmat
   assert.match(email.text,/Bio-Rosentee/);
   assert.match(email.text,/10 Teebeutel × 2/);
 }));
+
+
+test("payment preference is validated, persisted and listed in notification emails", async () => run(async () => {
+  assert.throws(() => parseOrder({ ...input, preferredPaymentMethod: "crypto" }), /invalid_preferred_payment_method/);
+  assert.equal(parseOrder(input).preferredPaymentMethod, "unspecified");
+  const { order } = await createOrder({ ...input, preferredPaymentMethod: "moneygram" }, crypto.randomUUID());
+  assert.equal(order.preferred_payment_method, "moneygram");
+  const { emailPayload } = await import("../lib/orders/templates");
+  const notification = emailPayload((await getEvents(order.id)).find(e => e.kind === "internal")!, order, await getItems(order.id));
+  assert.match(notification.html, /MoneyGram/);
+  assert.match(notification.text, /MoneyGram/);
+}));
+
+test("money transfer preferences need configured recipient details before sending a payment request", async () => run(async () => {
+  const { order } = await createOrder({ ...input, preferredPaymentMethod: "western_union" }, crypto.randomUUID());
+  const checked = await editOrder(order.id, { version: order.version, shippingCents: 490, availabilityConfirmed: true, sellerNote: "" });
+  await assert.rejects(requestPayment(order.id, { version: checked.version }), /preferred_payment_method_unavailable/);
+  const configured = { WESTERN_UNION_RECIPIENT_NAME: "Example Recipient", WESTERN_UNION_RECIPIENT_COUNTRY: "Germany", MONEYGRAM_RECIPIENT_NAME: "Example MoneyGram", MONEYGRAM_RECIPIENT_COUNTRY: "Germany", PAYPAL_ADDRESS: "payments@example.test" };
+  const payment = await run(() => requestPayment(order.id, { version: checked.version }), configured);
+  assert.equal(payment.status, "awaiting_payment");
+  const html = await (await paymentPage(new Request("https://roseofberlin.de"), { params: Promise.resolve({ secureToken: payment.public_token }) })).text();
+  assert.match(html, /Western Union/);
+  assert.match(html, /MoneyGram/);
+  assert.match(html, /Example Recipient/);
+  assert.match(html, /keinen PayPal-Käuferschutz/);
+  const paymentMail = (await getEvents(order.id)).find(e => e.kind === "payment")!;
+  const payload = JSON.parse(paymentMail.payload_json!);
+  assert.match(payload.text, /Western Union \(by arrangement\)/);
+  assert.match(payload.text, /MoneyGram \(by arrangement\)/);
+  assert.match(payload.text, /goods and services only/);
+}));
+
+test("PayPal is restricted to goods and services instructions and manual verification", async () => run(async () => {
+  const { order } = await createOrder({ ...input, preferredPaymentMethod: "paypal" }, crypto.randomUUID());
+  const checked = await editOrder(order.id, { version: order.version, shippingCents: 0, availabilityConfirmed: true, sellerNote: "" });
+  await assert.rejects(requestPayment(order.id, { version: checked.version }), /preferred_payment_method_unavailable/);
+  const payment = await run(() => requestPayment(order.id, { version: checked.version }), { PAYPAL_ADDRESS: "payments@example.test" });
+  const html = await (await paymentPage(new Request("https://roseofberlin.de"), { params: Promise.resolve({ secureToken: payment.public_token }) })).text();
+  assert.match(html, /Waren und Dienstleistungen/);
+  assert.match(html, /payments@example\.test/);
+  assert.doesNotMatch(html, /Example Recipient/);
+}));
