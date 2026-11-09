@@ -20,6 +20,10 @@ export interface OrderEnvironment {
   BANK_IBAN?: string;
   BANK_BIC?: string;
   PAYPAL_ADDRESS?: string;
+  WESTERN_UNION_RECIPIENT_NAME?: string;
+  WESTERN_UNION_RECIPIENT_COUNTRY?: string;
+  MONEYGRAM_RECIPIENT_NAME?: string;
+  MONEYGRAM_RECIPIENT_COUNTRY?: string;
   ORDER_ADMIN_EMAILS?: string;
 }
 const context = new AsyncLocalStorage<{ env: OrderEnvironment; trustedSites: boolean }>();
