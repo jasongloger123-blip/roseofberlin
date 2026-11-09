@@ -29,6 +29,7 @@ export const orders = sqliteTable("orders", {
   city: text("city").notNull(),
   country: text("country").notNull(),
   language: text("language", { enum: ["de", "en"] }).notNull(),
+  preferred_payment_method: text("preferred_payment_method", { enum: ["unspecified", "paypal", "bank", "western_union", "moneygram"] }).notNull().default("unspecified"),
   currency: text("currency").notNull().default("EUR"),
   subtotal_cents: integer("subtotal_cents").notNull(),
   shipping_cents: integer("shipping_cents"),

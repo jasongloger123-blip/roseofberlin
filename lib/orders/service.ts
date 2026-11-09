@@ -15,9 +15,9 @@ export async function createOrder(input: unknown, key: string | null) {
   }
   const id = crypto.randomUUID(), now = new Date().toISOString(), year = new Date().getUTCFullYear();
   await db.batch([
-    db.prepare(`INSERT INTO orders (id,idempotency_key,request_hash,public_token,customer_name,email,phone,address_line1,address_line2,postal_code,city,country,language,subtotal_cents,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING`).bind(
-      id, token, fingerprint, secureToken(), parsed.customerName, parsed.email, parsed.phone || null, parsed.addressLine1, parsed.addressLine2 || null, parsed.postalCode, parsed.city, parsed.country, parsed.language, parsed.subtotalCents, now, now),
+    db.prepare(`INSERT INTO orders (id,idempotency_key,request_hash,public_token,customer_name,email,phone,address_line1,address_line2,postal_code,city,country,language,preferred_payment_method,subtotal_cents,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING`).bind(
+      id, token, fingerprint, secureToken(), parsed.customerName, parsed.email, parsed.phone || null, parsed.addressLine1, parsed.addressLine2 || null, parsed.postalCode, parsed.city, parsed.country, parsed.language, parsed.preferredPaymentMethod, parsed.subtotalCents, now, now),
     db.prepare("UPDATE orders SET order_number = 'ROB-' || ? || '-' || printf('%06d', sequence) WHERE id=?").bind(String(year), id),
     ...items.map(item => db.prepare(`INSERT INTO order_items (id,order_id,product_key,product_label,size,quantity,unit_price_cents,line_total_cents)
       SELECT ?,id,?,?,?,?,?,? FROM orders WHERE id=?`).bind(crypto.randomUUID(), item.product, item.productLabel, item.size, item.quantity, item.unitPriceCents, item.subtotalCents, id)),
@@ -65,8 +65,17 @@ export async function requestPayment(id: string, input: unknown) {
   const subtotal = items.reduce((sum, i) => sum + i.line_total_cents, 0);
   if (subtotal !== order.subtotal_cents) throw new OrderError("invalid_order", 409);
   publicBaseUrl();
+  const details = paymentDetails();
+  const preferred = order.preferred_payment_method;
+  const available = {
+    unspecified: true, paypal: Boolean(details.paypal),
+    bank: Boolean(details.accountName && details.iban && details.bic),
+    western_union: Boolean(details.westernUnionRecipientName && details.westernUnionRecipientCountry),
+    moneygram: Boolean(details.moneyGramRecipientName && details.moneyGramRecipientCountry),
+  };
+  if (!available[preferred]) throw new OrderError("preferred_payment_method_unavailable", 409);
   const now = new Date().toISOString(), mutation = crypto.randomUUID(), revision = order.payment_revision + 1;
-  const updated: Order = { ...order, total_cents: subtotal + order.shipping_cents, status: "awaiting_payment", payment_snapshot: JSON.stringify(paymentDetails()), payment_requested_at: now, payment_revision: revision };
+  const updated: Order = { ...order, total_cents: subtotal + order.shipping_cents, status: "awaiting_payment", payment_snapshot: JSON.stringify(details), payment_requested_at: now, payment_revision: revision };
   const eventId = crypto.randomUUID(), event = { kind: "payment" } as EmailEvent;
   // Freeze the exact content and payment details before committing the transition.
   const payload = JSON.stringify(emailPayload(event, updated, items));

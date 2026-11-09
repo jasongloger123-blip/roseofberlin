@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EmailEvent, Order, OrderItem } from "../../../db/schema";
-import { money, statuses, statusLabels, type OrderStatus } from "../../../lib/orders/domain";
+import { money, paymentMethodLabels, statuses, statusLabels, type OrderStatus } from "../../../lib/orders/domain";
 
 type SafeOrder = Omit<Order, "payment_snapshot" | "public_token" | "request_hash" | "idempotency_key" | "mutation_id">;
 type Row = Pick<Order, "id" | "order_number" | "customer_name" | "country" | "subtotal_cents" | "shipping_cents" | "total_cents" | "status" | "created_at"> & { email_attention: number };
@@ -12,6 +12,7 @@ const messages: Record<string, string> = {
   payment_not_ready: "Verfügbarkeit und Versandkosten müssen zuerst bestätigt und gespeichert sein.", terms_locked: "Versandkosten können nach Zahlung nicht mehr geändert werden.",
   invalid_shipping: "Versandkosten zwischen 0 und 1.000 Euro mit höchstens zwei Nachkommastellen eingeben.", invalid_transition: "Dieser Statuswechsel ist nicht möglich.",
   service_unavailable: "Die Aktion ist derzeit nicht verfügbar. Bitte Einrichtung und Verbindung prüfen und erneut versuchen.",
+  preferred_payment_method_unavailable: "Die vom Kunden gewünschte Zahlungsart ist noch nicht vollständig konfiguriert. Bitte Zahlungsempfängerdaten in der Server-Konfiguration ergänzen.",
 };
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const res = await fetch(url, { cache: "no-store", signal, ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}) });
@@ -94,13 +95,13 @@ export default function OrdersManager() {
     </section>
     {detail && order ? <section className="admin-card order-detail" aria-busy={busy}><div className="detail-heading"><div><p className="admin-muted">{date(order.created_at)}</p><h2>{order.order_number}</h2><span className={`status-badge ${order.status}`}>{statusLabels.de[order.status]}</span></div><button className="order-link" disabled={busy} onClick={() => open(order.id)}>Neu laden</button></div>
       <h3>Kontakt & Lieferung</h3><address>{order.customer_name}<br />{order.address_line1}<br />{order.address_line2 && <>{order.address_line2}<br /></>}{order.postal_code} {order.city}<br />{order.country}</address><p><a href={`mailto:${order.email}`}>{order.email}</a>{order.phone && <><br />{order.phone}</>}</p>
-      <h3>Auswahl</h3>{detail.items.map(item => <div className="detail-item" key={item.id}><span>{item.product_label}<small>{item.size} · {item.quantity} × {money(item.unit_price_cents)}</small></span><strong>{money(item.line_total_cents)}</strong></div>)}
+      <h3>Auswahl</h3><p><strong>Zahlungswunsch:</strong> {paymentMethodLabels.de[order.preferred_payment_method]}</p>{detail.items.map(item => <div className="detail-item" key={item.id}><span>{item.product_label}<small>{item.size} · {item.quantity} × {money(item.unit_price_cents)}</small></span><strong>{money(item.line_total_cents)}</strong></div>)}
       <fieldset disabled={busy} className="admin-fields"><label>Versandkosten in EUR<input inputMode="decimal" placeholder="Noch offen" value={shipping} disabled={!termsEditable} onChange={e => setShipping(e.target.value)} /></label><label className="admin-check"><input type="checkbox" checked={available} disabled={!termsEditable} onChange={e => setAvailable(e.target.checked)} />Verfügbarkeit bestätigt</label><label>Interne Notizen<textarea value={note} onChange={e => setNote(e.target.value)} maxLength={4000} rows={3} /></label>
       {order.status === "awaiting_payment" && unsaved && <p className="admin-alert">Änderungen an Versand oder Verfügbarkeit machen die bisherige Zahlungsanforderung und ihren Link ungültig. Danach erneut senden.</p>}
       <div className="admin-total"><span>Gesamt (gespeichert)</span><strong>{displayMoney(order.total_cents)}</strong></div><button className="button outline" disabled={!unsaved} onClick={save}>Änderungen speichern</button>
       {["received", "needs_review"].includes(order.status) && <><button className="button primary" disabled={!canPay} onClick={() => action({ action: "payment" })}>Zahlungsanforderung senden</button>{!canPay && <p className="admin-muted">Verfügbarkeit bestätigen und Versandkosten speichern. Kostenloser Versand: 0,00 Euro.</p>}</>}
       {order.status === "processing" && <label>Trackingnummer (optional)<input value={tracking} onChange={e => setTracking(e.target.value)} maxLength={150} /></label>}
-      {nextStatus[order.status] && <button className="button primary" disabled={unsaved} onClick={() => { if (order.status === "awaiting_payment" && !window.confirm("Ist der vollständige Betrag tatsächlich auf dem Bank- oder PayPal-Konto eingegangen?")) return; void action({ action: "status", status: nextStatus[order.status], trackingNumber: tracking || null }); }}>{actionLabels[order.status]}</button>}
+      {nextStatus[order.status] && <button className="button primary" disabled={unsaved} onClick={() => { if (order.status === "awaiting_payment" && !window.confirm("Ist der vollständige Betrag tatsächlich über die vereinbarte Zahlungsart eingegangen?")) return; void action({ action: "status", status: nextStatus[order.status], trackingNumber: tracking || null }); }}>{actionLabels[order.status]}</button>}
       {["received", "needs_review", "awaiting_payment"].includes(order.status) && <button className="order-link danger" onClick={() => { if (window.confirm("Bestellung stornieren? Die Zahlungsübersicht wird als storniert markiert.")) void action({ action: "status", status: "cancelled" }); }}>Bestellung stornieren</button>}
       </fieldset>
       {order.paid_at && <p className="admin-muted">Bezahlt am {date(order.paid_at)}</p>}{order.shipped_at && <p className="admin-muted">Versendet am {date(order.shipped_at)}{order.tracking_number && ` · ${order.tracking_number}`}</p>}

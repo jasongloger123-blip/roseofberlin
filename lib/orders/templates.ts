@@ -1,13 +1,28 @@
 import type { Order, OrderItem, EmailEvent } from "../../db/schema";
-import { money, statusLabels } from "./domain";
+import { money, paymentMethodLabels, statusLabels } from "./domain";
 import { orderEnvironment, publicBaseUrl } from "./runtime";
 
-export interface PaymentDetails { accountName: string; iban: string; bic: string; paypal: string }
+export interface PaymentDetails {
+  accountName: string; iban: string; bic: string; paypal: string;
+  westernUnionRecipientName: string; westernUnionRecipientCountry: string;
+  moneyGramRecipientName: string; moneyGramRecipientCountry: string;
+}
 export function paymentDetails(): PaymentDetails {
   const env = orderEnvironment();
-  const details = { accountName: env.BANK_ACCOUNT_NAME?.trim() ?? "", iban: env.BANK_IBAN?.replace(/\s/g, "") ?? "", bic: env.BANK_BIC?.trim() ?? "", paypal: env.PAYPAL_ADDRESS?.trim() ?? "" };
-  if (!(details.accountName && details.iban && details.bic) && !details.paypal) throw new Error("PAYMENT_METHOD_MISSING");
+  const details = {
+    accountName: env.BANK_ACCOUNT_NAME?.trim() ?? "",
+    iban: env.BANK_IBAN?.replace(/\s/g, "") ?? "",
+    bic: env.BANK_BIC?.trim() ?? "",
+    paypal: env.PAYPAL_ADDRESS?.trim() ?? "",
+    westernUnionRecipientName: env.WESTERN_UNION_RECIPIENT_NAME?.trim() ?? "",
+    westernUnionRecipientCountry: env.WESTERN_UNION_RECIPIENT_COUNTRY?.trim() ?? "",
+    moneyGramRecipientName: env.MONEYGRAM_RECIPIENT_NAME?.trim() ?? "",
+    moneyGramRecipientCountry: env.MONEYGRAM_RECIPIENT_COUNTRY?.trim() ?? "",
+  };
   if ((details.accountName || details.iban || details.bic) && !(details.accountName && details.iban && details.bic)) throw new Error("BANK_DETAILS_INCOMPLETE");
+  if ((details.westernUnionRecipientName || details.westernUnionRecipientCountry) && !(details.westernUnionRecipientName && details.westernUnionRecipientCountry)) throw new Error("WESTERN_UNION_DETAILS_INCOMPLETE");
+  if ((details.moneyGramRecipientName || details.moneyGramRecipientCountry) && !(details.moneyGramRecipientName && details.moneyGramRecipientCountry)) throw new Error("MONEYGRAM_DETAILS_INCOMPLETE");
+  if (!(details.accountName && details.iban && details.bic) && !details.paypal && !details.westernUnionRecipientName && !details.moneyGramRecipientName) throw new Error("PAYMENT_METHOD_MISSING");
   return details;
 }
 export const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -20,13 +35,31 @@ export function orderSummary(order: Order, items: OrderItem[], final: boolean): 
   const de = order.language === "de";
   const e = escapeHtml;
   const address = [order.customer_name, order.address_line1, order.address_line2, `${order.postal_code} ${order.city}`, new Intl.DisplayNames([order.language], { type: "region" }).of(order.country)].filter(Boolean).join("\n");
-  return `<p><strong>${e(order.order_number)}</strong><br>${new Date(order.created_at).toLocaleDateString(de ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin" })}</p><p class="address">${e(address)}</p><div class="table-wrap"><table><thead><tr><th>${de ? "Produkt / Größe" : "Product / Size"}</th><th class="num">${de ? "Menge" : "Qty"}</th><th class="num">${de ? "Einzelpreis" : "Unit price"}</th><th class="num">${de ? "Gesamt" : "Amount"}</th></tr></thead><tbody>${items.map(i => `<tr><td>${e(i.product_label)}<br><span class="muted">${e(i.size)}</span></td><td class="num">${i.quantity}</td><td class="num">${money(i.unit_price_cents, order.language)}</td><td class="num">${money(i.line_total_cents, order.language)}</td></tr>`).join("")}</tbody></table></div><div class="totals"><p><span>${de ? "Warenwert" : "Subtotal"}</span><strong>${money(order.subtotal_cents, order.language)}</strong></p><p><span>${de ? "Versand" : "Shipping"}</span><strong>${final && order.shipping_cents !== null ? money(order.shipping_cents, order.language) : de ? "Wird bestätigt" : "To be confirmed"}</strong></p>${final && order.total_cents !== null ? `<p class="grand"><span>${de ? "Gesamtbetrag" : "Total"}</span><strong>${money(order.total_cents, order.language)}</strong></p>` : ""}</div><p class="muted">${de ? "Preisbasis: EUR. Es wird keine Mehrwertsteuer berechnet." : "All amounts payable in EUR. No VAT is charged."}</p>`;
+  return `<p><strong>${e(order.order_number)}</strong><br>${new Date(order.created_at).toLocaleDateString(de ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin" })}</p><p class="address">${e(address)}</p><p class="muted">${de ? "Bevorzugte Zahlungsart" : "Preferred payment method"}: <strong>${e(paymentMethodLabels[order.language][order.preferred_payment_method ?? "unspecified"])}</strong></p><div class="table-wrap"><table><thead><tr><th>${de ? "Produkt / Größe" : "Product / Size"}</th><th class="num">${de ? "Menge" : "Qty"}</th><th class="num">${de ? "Einzelpreis" : "Unit price"}</th><th class="num">${de ? "Gesamt" : "Amount"}</th></tr></thead><tbody>${items.map(i => `<tr><td>${e(i.product_label)}<br><span class="muted">${e(i.size)}</span></td><td class="num">${i.quantity}</td><td class="num">${money(i.unit_price_cents, order.language)}</td><td class="num">${money(i.line_total_cents, order.language)}</td></tr>`).join("")}</tbody></table></div><div class="totals"><p><span>${de ? "Warenwert" : "Subtotal"}</span><strong>${money(order.subtotal_cents, order.language)}</strong></p><p><span>${de ? "Versand" : "Shipping"}</span><strong>${final && order.shipping_cents !== null ? money(order.shipping_cents, order.language) : de ? "Wird bestätigt" : "To be confirmed"}</strong></p>${final && order.total_cents !== null ? `<p class="grand"><span>${de ? "Gesamtbetrag" : "Total"}</span><strong>${money(order.total_cents, order.language)}</strong></p>` : ""}</div><p class="muted">${de ? "Preisbasis: EUR. Es wird keine Mehrwertsteuer berechnet." : "All amounts payable in EUR. No VAT is charged."}</p>`;
 }
 function bankBlock(order: Order) {
   if (!order.payment_snapshot) return "";
   const details = JSON.parse(order.payment_snapshot) as PaymentDetails;
   const de = order.language === "de", e = escapeHtml;
-  return `<section class="payment"><h2>${de ? "Zahlungsmöglichkeiten" : "Payment options"}</h2>${details.iban ? `<p><strong>${de ? "Banküberweisung" : "Bank transfer"}</strong><br>${e(details.accountName)}<br>IBAN: ${e(details.iban)}<br>BIC: ${e(details.bic)}</p>` : ""}${details.paypal ? `<p><strong>PayPal</strong><br>${e(details.paypal)}</p>` : ""}<p>${de ? "Verwendungszweck bei jeder Zahlung:" : "Payment reference for every payment:"}<br><strong>${e(order.order_number)}</strong></p></section>`;
+  const bank = details.iban ? `<p><strong>${de ? "Banküberweisung (SEPA)" : "Bank transfer (SEPA)"}</strong><br>${e(details.accountName)}<br>IBAN: ${e(details.iban)}<br>BIC: ${e(details.bic)}</p>` : "";
+  const paypal = details.paypal ? `<p><strong>PayPal</strong><br>${e(details.paypal)}<br>${de ? "Bitte ausschließlich Waren und Dienstleistungen verwenden, nicht Freunde und Familie." : "Use goods and services only, not friends and family."}</p>` : "";
+  const wu = details.westernUnionRecipientName ? `<p><strong>Western Union</strong><br>${de ? "Empfänger" : "Recipient"}: ${e(details.westernUnionRecipientName)}<br>${de ? "Empfängerland" : "Recipient country"}: ${e(details.westernUnionRecipientCountry)}</p>` : "";
+  const mg = details.moneyGramRecipientName ? `<p><strong>MoneyGram</strong><br>${de ? "Empfänger" : "Recipient"}: ${e(details.moneyGramRecipientName)}<br>${de ? "Empfängerland" : "Recipient country"}: ${e(details.moneyGramRecipientCountry)}</p>` : "";
+  const warning = wu || mg ? `<p class="muted">${de ? "Western Union und MoneyGram nur nach direkter Vereinbarung und Prüfung der Konditionen des Anbieters nutzen. Geldtransfers können schwer oder gar nicht rückholbar sein und bieten keinen PayPal-Käuferschutz. Keine Zahlung ohne bestätigte Zahlungsanweisung." : "Use Western Union or MoneyGram only after direct agreement and reviewing the provider's terms. Transfers may be difficult or impossible to recover and do not provide PayPal buyer protection. Do not pay without confirmed payment instructions."}</p>` : "";
+  return `<section class="payment"><h2>${de ? "Zahlungsmöglichkeiten" : "Payment options"}</h2>${bank}${paypal}${wu}${mg}${warning}<p>${de ? "Verwendungszweck bei jeder Zahlung:" : "Payment reference for every payment:"}<br><strong>${e(order.order_number)}</strong></p></section>`;
+}
+function paymentText(order: Order): string {
+  if (!order.payment_snapshot) return "";
+  const details = JSON.parse(order.payment_snapshot) as PaymentDetails;
+  const de = order.language === "de";
+  return [
+    details.iban && `Bank transfer: ${details.accountName} | IBAN: ${details.iban} | BIC: ${details.bic}`,
+    details.paypal && `PayPal (goods and services only): ${details.paypal}`,
+    details.westernUnionRecipientName && `Western Union (by arrangement): ${details.westernUnionRecipientName}, ${details.westernUnionRecipientCountry}`,
+    details.moneyGramRecipientName && `MoneyGram (by arrangement): ${details.moneyGramRecipientName}, ${details.moneyGramRecipientCountry}`,
+    (details.westernUnionRecipientName || details.moneyGramRecipientName) && (de ? "Warnung: Geldtransfers haben keinen vergleichbaren Käuferschutz und sind eventuell nicht rückholbar. Vorher Anbieterbedingungen prüfen." : "Warning: Money transfers lack comparable buyer protection and may not be recoverable. Check provider terms first."),
+    `Reference: ${order.order_number}`,
+  ].filter(Boolean).join("\n");
 }
 export function paymentDocument(order: Order, items: OrderItem[], nonce: string): string {
   const de = order.language === "de";
@@ -62,6 +95,6 @@ export function emailPayload(event: EmailEvent, order: Order, items: OrderItem[]
     reply_to: event.kind === "internal" ? order.email : env.ORDER_NOTIFICATION_EMAIL,
     subject: `${title} – ${order.order_number}`,
     html: documentShell(title, content, de ? "de" : "en"),
-    text: `${title}\n${order.order_number}\n${intro}\n${event.kind === "internal" ? `Kunden-E-Mail: ${order.email}\nTelefon: ${phone}\nMit „Antworten“ schreibst du direkt an den Kunden.\n` : ""}${order.customer_name}\n${[order.address_line1, order.address_line2, order.postal_code, order.city, order.country].filter(Boolean).join("\n")}\n${items.map(i => `${i.product_label} ${i.size} × ${i.quantity}: ${money(i.line_total_cents, order.language)}`).join("\n")}\n${de ? "Warenwert" : "Subtotal"}: ${money(order.subtotal_cents, order.language)}\n${["received", "internal"].includes(event.kind) ? (de ? "Versandkosten werden bestätigt." : "Shipping costs to be confirmed.") : `${de ? "Versand" : "Shipping"}: ${money(order.shipping_cents ?? 0, order.language)}\n${de ? "Gesamt" : "Total"}: ${money(order.total_cents ?? 0, order.language)}`}\n${event.kind === "payment" ? Object.values(JSON.parse(order.payment_snapshot!) as PaymentDetails).filter(Boolean).join("\n") : ""}\n${event.kind === "shipped" ? order.tracking_number ?? "" : ""}\n${event.kind !== "received" ? link : ""}\nSelesitina Gloger · Angerweg 15 · 31249 Hohenhameln`,
+    text: `${title}\n${order.order_number}\n${intro}\n${event.kind === "internal" ? `Kunden-E-Mail: ${order.email}\nTelefon: ${phone}\nMit „Antworten“ schreibst du direkt an den Kunden.\n` : ""}${order.customer_name}\n${[order.address_line1, order.address_line2, order.postal_code, order.city, order.country].filter(Boolean).join("\n")}\n${items.map(i => `${i.product_label} ${i.size} × ${i.quantity}: ${money(i.line_total_cents, order.language)}`).join("\n")}\n${de ? "Bevorzugte Zahlungsart" : "Preferred payment method"}: ${paymentMethodLabels[order.language][order.preferred_payment_method ?? "unspecified"]}\n${de ? "Warenwert" : "Subtotal"}: ${money(order.subtotal_cents, order.language)}\n${["received", "internal"].includes(event.kind) ? (de ? "Versandkosten werden bestätigt." : "Shipping costs to be confirmed.") : `${de ? "Versand" : "Shipping"}: ${money(order.shipping_cents ?? 0, order.language)}\n${de ? "Gesamt" : "Total"}: ${money(order.total_cents ?? 0, order.language)}`}\n${event.kind === "payment" ? paymentText(order) : ""}\n${event.kind === "shipped" ? order.tracking_number ?? "" : ""}\n${event.kind !== "received" ? link : ""}\nSelesitina Gloger · Angerweg 15 · 31249 Hohenhameln`,
   };
 }
