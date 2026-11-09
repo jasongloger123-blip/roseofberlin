@@ -186,6 +186,7 @@ test("German and English emails escape customer content and omit final payment i
   const customer = emails.find(e => e.body.to.includes(input.email))!;
   assert.match(customer.body.html, /Please do not pay yet/); assert.doesNotMatch(customer.body.html, /<script>alert|TEST ACCOUNT/); assert.match(customer.body.html, /&lt;script&gt;/);
   assert.match(customer.body.text, /Your purchase enquiry is non-binding/);
+  assert.match(customer.body.text, /within 48 hours/);
 }));
 
 test("email imports remain unconfirmed drafts and discard extracted price fields", () => {
@@ -194,14 +195,20 @@ test("email imports remain unconfirmed drafts and discard extracted price fields
 });
 
 // Inspect the actual provider request, including snapshots created before sending.
-test("order emails route seller replies to customers and customer replies to the seller", async () => run(async () => {
+test("order emails include checkout contact details and route replies correctly", async () => run(async () => {
   emails = []; mockMail();
-  const { order } = await newOrder();
+  const { order } = await createOrder({ ...input, phone: "+49 511 123456", addressLine2: "Hinterhaus" }, crypto.randomUUID());
   await sendOrderEmails(order.id);
   const internal = emails.find(e => e.body.to.includes(env.ORDER_NOTIFICATION_EMAIL!))!.body;
   assert.equal(internal.reply_to, input.email);
   assert.match(internal.html, /mailto:orders@example.test/);
   assert.match(internal.text, /Kunden-E-Mail: orders@example.test/);
+  assert.match(internal.text, /Telefon: \+49 511 123456/);
+  assert.match(internal.html, /\+49 511 123456/);
+  assert.match(internal.text, /Hinterhaus/);
+  const receipt = emails.find(e => e.body.to.includes(input.email))!.body;
+  assert.match(receipt.html, /innerhalb von 48 Stunden/);
+  assert.match(receipt.text, /innerhalb von 48 Stunden/);
   const checked = await editOrder(order.id, { version: order.version, shippingCents: 490, availabilityConfirmed: true, sellerNote: "" });
   const payment = await requestPayment(checked.id, { version: checked.version });
   await sendOrderEmails(order.id);
