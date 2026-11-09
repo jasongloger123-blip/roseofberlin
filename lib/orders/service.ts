@@ -15,9 +15,9 @@ export async function createOrder(input: unknown, key: string | null) {
   }
   const id = crypto.randomUUID(), now = new Date().toISOString(), year = new Date().getUTCFullYear();
   await db.batch([
-    db.prepare(`INSERT INTO orders (id,idempotency_key,request_hash,public_token,customer_name,email,phone,address_line1,address_line2,postal_code,city,country,language,subtotal_cents,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING`).bind(
-      id, token, fingerprint, secureToken(), parsed.customerName, parsed.email, parsed.phone || null, parsed.addressLine1, parsed.addressLine2 || null, parsed.postalCode, parsed.city, parsed.country, parsed.language, parsed.subtotalCents, now, now),
+    db.prepare(`INSERT INTO orders (id,idempotency_key,request_hash,public_token,customer_name,email,phone,address_line1,address_line2,postal_code,city,country,language,preferred_payment_method,subtotal_cents,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(idempotency_key) DO NOTHING`).bind(
+      id, token, fingerprint, secureToken(), parsed.customerName, parsed.email, parsed.phone || null, parsed.addressLine1, parsed.addressLine2 || null, parsed.postalCode, parsed.city, parsed.country, parsed.language, parsed.preferredPaymentMethod, parsed.subtotalCents, now, now),
     db.prepare("UPDATE orders SET order_number = 'ROB-' || ? || '-' || printf('%06d', sequence) WHERE id=?").bind(String(year), id),
     ...items.map(item => db.prepare(`INSERT INTO order_items (id,order_id,product_key,product_label,size,quantity,unit_price_cents,line_total_cents)
       SELECT ?,id,?,?,?,?,?,? FROM orders WHERE id=?`).bind(crypto.randomUUID(), item.product, item.productLabel, item.size, item.quantity, item.unitPriceCents, item.subtotalCents, id)),
