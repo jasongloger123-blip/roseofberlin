@@ -12,6 +12,7 @@ const messages: Record<string, string> = {
   payment_not_ready: "Verfügbarkeit und Versandkosten müssen zuerst bestätigt und gespeichert sein.", terms_locked: "Versandkosten können nach Zahlung nicht mehr geändert werden.",
   invalid_shipping: "Versandkosten zwischen 0 und 1.000 Euro mit höchstens zwei Nachkommastellen eingeben.", invalid_transition: "Dieser Statuswechsel ist nicht möglich.",
   service_unavailable: "Die Aktion ist derzeit nicht verfügbar. Bitte Einrichtung und Verbindung prüfen und erneut versuchen.",
+  preferred_payment_method_unavailable: "Die vom Kunden gewünschte Zahlungsart ist noch nicht vollständig konfiguriert. Bitte Zahlungsempfängerdaten in der Server-Konfiguration ergänzen.",
 };
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const res = await fetch(url, { cache: "no-store", signal, ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}) });
