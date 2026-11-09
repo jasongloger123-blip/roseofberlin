@@ -1,6 +1,12 @@
 export const statuses = ["received", "needs_review", "awaiting_payment", "paid", "processing", "shipped", "cancelled"] as const;
 export type OrderStatus = typeof statuses[number];
 export type Language = "de" | "en";
+export const paymentMethods = ["unspecified", "paypal", "bank", "western_union", "moneygram"] as const;
+export type PaymentMethod = typeof paymentMethods[number];
+export const paymentMethodLabels: Record<Language, Record<PaymentMethod, string>> = {
+  de: { unspecified: "Noch offen", paypal: "PayPal (Waren und Dienstleistungen)", bank: "Banküberweisung (SEPA)", western_union: "Western Union (nach Absprache)", moneygram: "MoneyGram (nach Absprache)" },
+  en: { unspecified: "Not decided", paypal: "PayPal (goods and services)", bank: "Bank transfer (SEPA)", western_union: "Western Union (by arrangement)", moneygram: "MoneyGram (by arrangement)" },
+};
 export const christmasOfferEndsAt = Date.parse("2026-12-25T23:00:00Z");
 export const christmasOfferAvailable = (now = Date.now()) => now < christmasOfferEndsAt;
 export const catalog = {
@@ -80,6 +86,8 @@ export function parseOrder(value: unknown, now = Date.now()) {
   const countries = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" });
   if (!/^[A-Z]{2}$/.test(country) || !countries.of(country) || ["ZZ", "EU", "UN", "EZ", "QO"].includes(country)) throw new OrderError("invalid_country");
   if (data.language !== "de" && data.language !== "en") throw new OrderError("invalid_language");
+  const preferredPaymentMethod = data.preferredPaymentMethod ?? "unspecified";
+  if (typeof preferredPaymentMethod !== "string" || !paymentMethods.includes(preferredPaymentMethod as PaymentMethod)) throw new OrderError("invalid_preferred_payment_method");
   const firstName = field(data, "firstName", 80);
   const lastName = field(data, "lastName", 80);
   return {
@@ -87,7 +95,7 @@ export function parseOrder(value: unknown, now = Date.now()) {
     phone: field(data, "phone", 40, true),
     addressLine1: field(data, "addressLine1", 200), addressLine2: field(data, "addressLine2", 200, true),
     postalCode: field(data, "postalCode", 20), city: field(data, "city", 100), country,
-    language: data.language as Language, product, productLabel, size, quantity,
+    language: data.language as Language, preferredPaymentMethod: preferredPaymentMethod as PaymentMethod, product, productLabel, size, quantity,
     unitPriceCents, subtotalCents: items.reduce((sum, item) => sum + item.subtotalCents, 0), items,
   };
 }
