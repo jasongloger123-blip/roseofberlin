@@ -234,3 +234,49 @@ Der frühere HTML-Test verlangte ein im bestehenden Produkt bereits nicht mehr
 vorhandenes Starter-Metatag `codex-preview=development`. Er kontrolliert jetzt den
 Produktions-Canonical, die Lieferadressfelder und das Fehlen von FormSubmit und
 Vercel-Previewlinks im gerenderten HTML. Die bisherigen HTTP-/HTML-Prüfungen bleiben.
+
+
+## Bevorzugte Zahlungsart und Geldtransfers (November 2026)
+
+Im Checkout können Kunden `PayPal`, `Banküberweisung`, `Western Union`,
+`MoneyGram` oder `Später entscheiden` wählen. Dies ist zunächst **nur eine
+Zahlungspräferenz**. Es findet **keine Sofortzahlung** statt. Der Server prüft
+den Wert gegen eine Whitelist, speichert ihn in
+`orders.preferred_payment_method` (Migration
+`0003_preferred_payment_method.sql`) und führt ihn in der Verkäuferansicht,
+in Bestellbestätigungen und in der Zahlungsübersicht auf.
+
+Zahlungsanforderungen werden weiterhin erst nach manueller Prüfung von
+Verfügbarkeit und Versandkosten versandt. Wenn eine konkrete Zahlungsart
+gewählt wurde, muss sie vor dem Versand vollständig serverseitig
+konfiguriert sein, sonst wird der Versand mit
+`preferred_payment_method_unavailable` verhindert.
+
+| Serverseitige Einstellung | Verwendung |
+| --- | --- |
+| `PAYPAL_ADDRESS` | PayPal-E-Mail für Zahlungen für **Waren und Dienstleistungen**; keine Freunde-/Familie-Zahlungen |
+| `BANK_ACCOUNT_NAME`, `BANK_IBAN`, `BANK_BIC` | SEPA-Empfängerangaben |
+| `WESTERN_UNION_RECIPIENT_NAME`, `WESTERN_UNION_RECIPIENT_COUNTRY` | Optionaler manueller Western-Union-Transfer |
+| `MONEYGRAM_RECIPIENT_NAME`, `MONEYGRAM_RECIPIENT_COUNTRY` | Optionaler manueller MoneyGram-Transfer |
+
+Western Union und MoneyGram sind **keine integrierten Checkout-Gateways**:
+keine API-Abwicklung, keine automatisierte Zahlungsprüfung, keine
+Zahlungs-Statusänderung aufgrund einer Kundenmeldung oder Referenznummer.
+Vor Nutzung müssen Absender-/Empfängerberechtigung, der zulässige
+Verwendungszweck, die Landesverfügbarkeit und die tatsächlichen Gebühren
+vom Anbieter bestätigt werden. Die Anbieter warnen ausdrücklich vor
+Geldtransfers an unbekannte Empfänger und Onlinekauf-Betrugsmaschen.
+Bei solchen Transfers kann das Geld nicht oder kaum rückholbar sein.
+Transaktionen nur nach direkter Absprache; keine pauschale Aussage,
+dass diese Methode günstiger sei.
+
+Die manuelle Statusänderung zu `paid` darf erst nach **verifiziertem
+vollständigem Zahlungseingang** erfolgen. Bei späterer echter PayPal-
+Checkout-Integration braucht es eine serverseitige Verifikation durch
+Provider-API/Webhook, keine Erfolgsmeldung anhand eines Browser-Redirects.
+
+**Rollout-Reihenfolge:** D1-Migration ausführen; gewünschte Empfängerdaten
+als Server-Secrets konfigurieren; Checkout/Bestell- und Zahlungs-E-Mails
+testen; erst dann neuen Website-/Worker-Code veröffentlichen. Wenn der
+Vercel-Frontendstand auf den separaten D1-Worker verweist, beide
+Deployments auf einen kompatiblen Stand bringen.
