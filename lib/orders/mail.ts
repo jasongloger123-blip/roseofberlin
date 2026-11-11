@@ -22,6 +22,7 @@ export async function sendEvent(eventId: string): Promise<void> {
     let payload: MailPayload;
     if (claimed.payload_json) payload = JSON.parse(claimed.payload_json) as MailPayload;
     else {
+      if (claimed.kind === "invoice") throw new Error("INVOICE_PAYLOAD_MISSING");
       const order = await getOrder(claimed.order_id);
       payload = emailPayload(claimed, order, await getItems(order.id));
       await db.prepare("UPDATE order_email_events SET payload_json=? WHERE id=? AND lease_id=?").bind(JSON.stringify(payload), eventId, lease).run();

@@ -35,6 +35,7 @@ export async function editOrder(id: string, input: unknown) {
   const shipping = shippingCents(data.shippingCents);
   if (typeof data.availabilityConfirmed !== "boolean" || typeof data.sellerNote !== "string" || data.sellerNote.length > 4000) throw new OrderError("invalid_input");
   const changeTerms = shipping !== order.shipping_cents || Number(data.availabilityConfirmed) !== order.availability_confirmed;
+  if (changeTerms && await db.prepare("SELECT id FROM invoices WHERE order_id=? AND cancelled_at IS NULL").bind(id).first()) throw new OrderError("invoice_terms_locked",409);
   if (changeTerms && !["received", "needs_review", "awaiting_payment"].includes(order.status)) throw new OrderError("terms_locked", 409);
   const invalidatesPayment = changeTerms && order.status === "awaiting_payment";
   const now = new Date().toISOString(), mutation = crypto.randomUUID();
@@ -86,6 +87,7 @@ export async function transitionOrder(id: string, input: unknown) {
   const data = record(input), db = orderDatabase(), order = await getOrder(id);
   if (typeof data.status !== "string" || !statuses.includes(data.status as OrderStatus)) throw new OrderError("invalid_status");
   const next = data.status as OrderStatus;
+  if (next === "cancelled" && await db.prepare("SELECT id FROM invoices WHERE order_id=? AND cancelled_at IS NULL").bind(id).first()) throw new OrderError("invoice_terms_locked",409);
   if (order.status === next) return order;
   if (data.version !== order.version) throw new OrderError("stale_order", 409);
   assertTransition(order.status, next);

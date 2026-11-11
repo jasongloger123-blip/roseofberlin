@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const purchaseInterests = sqliteTable("purchase_interests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -63,7 +63,7 @@ export const orderItems = sqliteTable("order_items", {
 export const orderEmailEvents = sqliteTable("order_email_events", {
   id: text("id").primaryKey(),
   order_id: text("order_id").notNull().references(() => orders.id),
-  kind: text("kind", { enum: ["received", "internal", "payment", "paid", "shipped"] }).notNull(),
+  kind: text("kind", { enum: ["received", "internal", "payment", "paid", "shipped", "invoice"] }).notNull(),
   revision: integer("revision").notNull().default(0),
   dedupe_key: text("dedupe_key").notNull().unique(),
   status: text("status", { enum: ["pending", "sending", "sent", "failed", "manual_review", "cancelled"] }).notNull().default("pending"),
@@ -94,3 +94,17 @@ export const orderRateLimits = sqliteTable("order_rate_limits", {
 export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type EmailEvent = typeof orderEmailEvents.$inferSelect;
+
+export const invoiceSettings = sqliteTable("invoice_settings", {
+  id: integer("id").primaryKey(), version: integer("version").notNull(), payload: text("payload").notNull(),
+}, table => [check("invoice_settings_singleton", sql`${table.id}=1`)]);
+export const invoices = sqliteTable("invoices", {
+  sequence: integer("sequence").primaryKey({ autoIncrement:true }), id:text("id").notNull().unique(),
+  number:text("number").unique(), order_id:text("order_id").notNull().references(()=>orders.id), token:text("token").notNull().unique(),
+  snapshot:text("snapshot").notNull(), issued_at:text("issued_at").notNull(), issued_by:text("issued_by").notNull(),
+  cancelled_at:text("cancelled_at"), cancelled_by:text("cancelled_by"), cancellation_reason:text("cancellation_reason"),
+}, table => [uniqueIndex("invoices_one_active_per_order").on(table.order_id).where(sql`${table.cancelled_at} IS NULL`)]);
+export const invoiceArchive=sqliteTable("invoice_archive", {
+  id:text("id").primaryKey(), fingerprint:text("fingerprint").notNull().unique(), label:text("label").notNull(),
+  content:text("content").notNull(), imported_at:text("imported_at").notNull(), imported_by:text("imported_by").notNull(),
+});

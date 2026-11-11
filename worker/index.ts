@@ -42,12 +42,17 @@ const worker = {
     }
 
     const response = await withOrderEnvironment(env, true, () => handler.fetch(request, env, ctx));
-    if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/order/") || url.pathname.startsWith("/api/")) {
+    if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/order/") || url.pathname.startsWith("/invoice/") || url.pathname.startsWith("/api/")) {
       const protectedResponse = new Response(response.body, response);
       protectedResponse.headers.set("Cache-Control", "private, no-store, max-age=0");
       protectedResponse.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       protectedResponse.headers.set("Referrer-Policy", "no-referrer");
       return protectedResponse;
+    }
+    if (url.hostname.endsWith(".chatgpt.site") && response.headers.get("Content-Type")?.includes("text/html")) {
+      const backendPage = new Response(response.body, response);
+      backendPage.headers.set("X-Robots-Tag", "noindex, follow");
+      return backendPage;
     }
     return response;
   },

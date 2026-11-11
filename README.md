@@ -5,6 +5,7 @@ geschützter Verwaltung unter `/admin/orders` und Resend-Transaktionsmails.
 Die Zahlungsübersicht lässt sich im Browser als PDF speichern.
 
 **Einrichtung und Betrieb:** [Bestellablauf, Migrationen, Variablen und DNS](docs/orders.md).
+**Rechnungen für Selesitina:** [Rechnungsarchiv, Versandvorlagen und Einrichtung](docs/invoices.md).
 Das Produktionsziel ist der bestehende Sites/Cloudflare-Worker; ein gewöhnliches
 Vercel-Deployment stellt dessen D1- und Identitätsbindungen nicht bereit.
 

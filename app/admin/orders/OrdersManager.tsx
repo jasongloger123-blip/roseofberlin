@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EmailEvent, Order, OrderItem } from "../../../db/schema";
 import { money, statuses, statusLabels, type OrderStatus } from "../../../lib/orders/domain";
+import InvoiceActions from "../invoices/InvoiceActions";
 
 type SafeOrder = Omit<Order, "payment_snapshot" | "public_token" | "request_hash" | "idempotency_key" | "mutation_id">;
 type Row = Pick<Order, "id" | "order_number" | "customer_name" | "country" | "subtotal_cents" | "shipping_cents" | "total_cents" | "status" | "created_at"> & { email_attention: number };
@@ -12,6 +13,7 @@ const messages: Record<string, string> = {
   payment_not_ready: "Verfügbarkeit und Versandkosten müssen zuerst bestätigt und gespeichert sein.", terms_locked: "Versandkosten können nach Zahlung nicht mehr geändert werden.",
   invalid_shipping: "Versandkosten zwischen 0 und 1.000 Euro mit höchstens zwei Nachkommastellen eingeben.", invalid_transition: "Dieser Statuswechsel ist nicht möglich.",
   service_unavailable: "Die Aktion ist derzeit nicht verfügbar. Bitte Einrichtung und Verbindung prüfen und erneut versuchen.",
+  invoice_terms_locked: "Eine Rechnung wurde bereits ausgestellt. Zuerst im Rechnungsarchiv stornieren, bevor Versand oder Verfügbarkeit geändert werden.",
 };
 async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const res = await fetch(url, { cache: "no-store", signal, ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}) });
@@ -21,7 +23,7 @@ async function api<T>(url: string, body?: unknown, signal?: AbortSignal): Promis
 }
 const displayMoney = (value: number | null) => value === null ? "Offen" : money(value);
 const date = (value: string) => new Date(value).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
-const mailNames = { received: "Eingangsbestätigung", internal: "Interne Benachrichtigung", payment: "Zahlungsanforderung", paid: "Zahlungsbestätigung", shipped: "Versandbestätigung" };
+const mailNames = { received: "Eingangsbestätigung", internal: "Interne Benachrichtigung", payment: "Zahlungsanforderung", paid: "Zahlungsbestätigung", shipped: "Versandbestätigung", invoice: "Rechnung" };
 const mailStatus = { pending: "Ausstehend", sending: "Wird gesendet", sent: "An Mailanbieter übergeben", failed: "Fehlgeschlagen", manual_review: "Zustellung prüfen", cancelled: "Ersetzt / storniert" };
 
 export default function OrdersManager() {
@@ -105,6 +107,7 @@ export default function OrdersManager() {
       </fieldset>
       {order.paid_at && <p className="admin-muted">Bezahlt am {date(order.paid_at)}</p>}{order.shipped_at && <p className="admin-muted">Versendet am {date(order.shipped_at)}{order.tracking_number && ` · ${order.tracking_number}`}</p>}
       {detail.paymentPath && <p><a className="order-link" href={detail.paymentPath} target="_blank" rel="noreferrer">Zahlungsübersicht / PDF öffnen</a></p>}
+      <InvoiceActions key={order.id} order={order} items={detail.items} onShipping={setShipping} unsaved={unsaved}/>
       <h3>E-Mails</h3><ul className="email-events">{detail.events.map(event => <li key={event.id}><strong>{mailNames[event.kind]}{event.revision > 1 ? ` · Version ${event.revision}` : ""}</strong><span>{mailStatus[event.status]} · {event.attempts} Versuch(e)</span>{event.error_code && <small>{event.error_code}</small>}{event.status === "manual_review" && <div><p>Die Zustellung ist unklar. Im Resend-Dashboard prüfen, bevor eine weitere E-Mail versendet wird.</p><label>Bestätigte Resend-E-Mail-ID<input value={providerId} onChange={e => setProviderId(e.target.value)} /></label><button className="button outline" disabled={busy || !providerId.trim()} onClick={() => action({ action: "reconcile_email", eventId: event.id, providerId })}>Versand als bestätigt erfassen</button><button className="order-link" disabled={busy} onClick={() => { if (window.confirm("Im Resend-Dashboard geprüft und sicher nicht versendet? Bei falscher Bestätigung kann eine doppelte E-Mail entstehen.")) void action({ action: "reconcile_not_sent", eventId: event.id }); }}>Im Anbieter geprüft: nicht versendet – erneut senden</button></div>}</li>)}</ul>
       <button className="button outline" disabled={busy || !detail.events.some(e => ["pending", "failed", "sending"].includes(e.status))} onClick={() => action({ action: "retry_emails" })}>Ausstehende / fehlgeschlagene E-Mails erneut versuchen</button>
       <details><summary>Versandprotokoll</summary>{detail.attempts.length ? detail.attempts.map(a => <p className="admin-muted" key={a.id}>{date(a.created_at)} · {a.outcome}{a.error_code ? ` · ${a.error_code}` : ""}</p>) : <p className="admin-muted">Noch keine Versuche protokolliert.</p>}</details>

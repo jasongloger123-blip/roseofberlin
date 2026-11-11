@@ -35,6 +35,19 @@ test("compiled Worker runs checkout, admin, payment document and fulfilment with
     const document = await fetchWorker(payData.paymentPath); assert.equal(document.status, 200);
     const html = await document.text(); assert.match(html, /110,50/); assert.match(html, /paypal-fixture@example.test/); assert.doesNotMatch(html, /not public/);
     if (process.env.ORDER_QA_FIXTURES === "1") await writeFile(".sites-runtime/payment-qa.html", html);
+    assert.equal((await fetchWorker("/api/admin/invoices")).status,401);
+    assert.equal((await fetchWorker("/admin/invoices",undefined,true)).status,200);
+    const config=await (await fetchWorker("/api/admin/invoices",undefined,true)).json();
+    const savedConfig=await fetchWorker("/api/admin/invoices",{action:"settings",version:config.version,settings:{...config.settings,taxId:"QA-TEST-ONLY",taxNote:"Test exemption",taxConfirmed:true}},true);
+    assert.equal(savedConfig.status,200);
+    const issued=await fetchWorker(`/api/admin/invoices/${row.id}`,{action:"issue",version:payData.order.version,addressConfirmed:true,deliveryDate:"2026-11-20"},true);
+    assert.equal(issued.status,200);const invoice=(await issued.json()).invoice;
+    const finalHtml=await (await fetchWorker(`/api/admin/invoices/${invoice.id}/document`,undefined,true)).text();
+    assert.match(finalHtml,/110,50/);assert.match(finalHtml,/ROB-RE-/);assert.doesNotMatch(finalHtml,/not public/);
+    const invoiceRows=await (await fetchWorker("/api/admin/invoices",undefined,true)).json();
+    assert.equal(invoiceRows.invoices[0].total_cents,11050);
+    const exported=await (await fetchWorker("/api/admin/invoices/export",undefined,true)).text();
+    assert.match(exported,/110\.50/);assert.doesNotMatch(exported,/NaN/);
     let currentVersion = payData.order.version;
     for (const status of ["paid", "processing", "shipped"]) {
       const action = await fetchWorker(`/api/admin/orders/${row.id}`, { action: "status", version: currentVersion, status, trackingNumber: "QA-123" }, true);

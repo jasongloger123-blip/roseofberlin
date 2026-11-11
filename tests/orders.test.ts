@@ -13,6 +13,11 @@ import { GET as paymentPage } from "../app/order/[secureToken]/payment/route";
 import { GET as adminList } from "../app/api/admin/orders/route";
 import { GET as adminDetail, POST as adminAction } from "../app/api/admin/orders/[id]/route";
 import { prepareEmailDraft } from "../lib/orders/import";
+import { defaultSettings, invoiceTotals, parseSettings, suggestTariff, tariffEurCents } from "../lib/invoices/domain";
+import { cancelInvoice, getSettings, issueInvoice, queueInvoice, saveSettings } from "../lib/invoices/service";
+import { invoiceDocument } from "../lib/invoices/templates";
+import { GET as invoiceList, POST as invoiceSettings } from "../app/api/admin/invoices/route";
+import { GET as invoicePublic } from "../app/invoice/[token]/route";
 
 let mf: Miniflare, db: Database;
 const input = { product: "parfum", size: "30 ml", quantity: 2, firstName: "Test", lastName: "Customer", email: "orders@example.test", addressLine1: "Teststraße 12", addressLine2: "", postalCode: "31137", city: "Hildesheim", country: "DE", phone: "", language: "de" };
@@ -278,3 +283,69 @@ test("rose tea pack is priced on the server, persisted and included in confirmat
   assert.match(email.text,/Bio-Rosentee/);
   assert.match(email.text,/10 Teebeutel × 2/);
 }));
+
+test("invoice tariffs never infer an unknown basket and validate rates", () => {
+  const t=suggestTariff("AU",[{product_key:"oil",quantity:1}],defaultSettings.tariffs)!;
+  assert.equal(t.cents,2500);assert.equal(tariffEurCents(t),1544);
+  assert.equal(suggestTariff("DE",[{product_key:"oil",quantity:1}],defaultSettings.tariffs),null);
+  assert.equal(suggestTariff("AU",[{product_key:"christmas",quantity:1}],defaultSettings.tariffs),null);
+  assert.throws(()=>parseSettings({...defaultSettings,tariffs:[{...t,eurRate:0}]}),OrderError);
+  assert.deepEqual(invoiceTotals([{quantity:1,unit_price_cents:6000,line_total_cents:6000}],2996),{subtotal:6000,shipping:2996,total:8996});
+  assert.throws(()=>invoiceTotals([{quantity:1,unit_price_cents:6000,line_total_cents:5900}],2996),OrderError);
+});
+test("invoice settings require an optimistic version and cannot overwrite a concurrent edit",async()=>run(async()=>{
+  const {version}=await getSettings();
+  const settings={...defaultSettings,taxId:"TEST-ONLY",taxNote:"Test exemption",taxConfirmed:true};
+  const updated=await saveSettings({version,settings});assert.equal(updated.version,version+1);
+  await assert.rejects(saveSettings({version,settings}),/stale_settings/);
+}));
+test("invoice issuance requires a reviewed address, complete setup, saved terms and valid delivery date",async()=>run(async()=>{
+  const order=await ready();
+  await assert.rejects(issueInvoice(order.id,{version:order.version,addressConfirmed:true,deliveryDate:"2026-11-20"},"admin@example.test"),/invoice_not_ready/);
+  const payable=await requestPayment(order.id,{version:order.version});
+  await assert.rejects(issueInvoice(order.id,{version:payable.version,addressConfirmed:false,deliveryDate:"2026-11-20"},"admin@example.test"),/invoice_setup_required/);
+  await assert.rejects(issueInvoice(order.id,{version:payable.version,addressConfirmed:true,deliveryDate:"2026-02-30"},"admin@example.test"),/invalid_delivery_date/);
+}));
+test("parallel invoice issuance freezes one numbered snapshot and prevents term changes",async()=>run(async()=>{
+  const readyOrder=await ready(), order=await requestPayment(readyOrder.id,{version:readyOrder.version});
+  const args={version:order.version,addressConfirmed:true,deliveryDate:"2026-11-20"};
+  const results=await Promise.all([issueInvoice(order.id,args,"admin@example.test"),issueInvoice(order.id,args,"admin@example.test")]);
+  assert.equal(results[0].id,results[1].id);assert.match(results[0].number,/^ROB-RE-\d{4}-\d{6}$/);
+  const invoice=results[0], snapshot=invoice.snapshot;
+  await assert.rejects(editOrder(order.id,{version:order.version,shippingCents:999,availabilityConfirmed:true,sellerNote:""}),/invoice_terms_locked/);
+  await assert.rejects(db.prepare("UPDATE invoices SET snapshot='{}' WHERE id=?").bind(invoice.id).run());
+  await assert.rejects(db.prepare("DELETE FROM invoices WHERE id=?").bind(invoice.id).run());
+  assert.match(invoiceDocument(invoice),/54,70/);
+  assert.match(invoiceDocument(invoice),/TEST-ONLY/);
+  const settings=await getSettings();await saveSettings({version:settings.version,settings:{...settings.settings,sellerName:"Different seller"}});
+  assert.match(invoiceDocument({...invoice,snapshot}),/Selesitina Gloger/);
+  assert.doesNotMatch(invoiceDocument(invoice),/Different seller/);
+}));
+test("invoice emails reuse the outbox and public documents need a secret token",async()=>run(async()=>{
+  const readyOrder=await ready(), order=await requestPayment(readyOrder.id,{version:readyOrder.version});
+  const invoice=await issueInvoice(order.id,{version:order.version,addressConfirmed:true,deliveryDate:"2026-11-20"},"admin@example.test");
+  await Promise.all([queueInvoice(invoice),queueInvoice(invoice)]);
+  const events=(await getEvents(order.id)).filter(e=>e.kind==="invoice");assert.equal(events.length,1);
+  assert.match(JSON.parse(events[0].payload_json!).html,/Invoice|Rechnung/);
+  assert.equal((await invoicePublic(new Request("https://roseofberlin.de/invoice/bad"),{params:Promise.resolve({token:"bad"})})).status,404);
+  const response=await invoicePublic(new Request("https://roseofberlin.de/invoice/"+invoice.token),{params:Promise.resolve({token:invoice.token})});
+  assert.equal(response.status,200);assert.match(response.headers.get("Cache-Control")!,/no-store/);
+}));
+test("cancellation preserves the original and allows a separate replacement invoice",async()=>run(async()=>{
+  const readyOrder=await ready(),order=await requestPayment(readyOrder.id,{version:readyOrder.version});
+  const input={version:order.version,addressConfirmed:true,deliveryDate:"2026-11-20"};
+  const first=await issueInvoice(order.id,input,"admin@example.test");
+  const cancelled=await cancelInvoice(first.id,{reason:"Address correction"},"admin@example.test");
+  assert.equal(cancelled.snapshot,first.snapshot);assert.match(invoiceDocument(cancelled,undefined,true),/-54,70/);
+  await assert.rejects(queueInvoice(cancelled),/invoice_cancelled/);
+  const replacement=await issueInvoice(order.id,input,"admin@example.test");
+  assert.notEqual(replacement.number,first.number);assert.notEqual(replacement.id,first.id);
+}));
+test("invoice routes reject anonymous, spoofed identities and cross-origin settings writes",async()=>{
+  const req=new Request("https://roseofberlin.de/api/admin/invoices");
+  assert.equal((await run(()=>invoiceList(req))).status,401);
+  const spoofed=await withOrderEnvironment({...env,DB:db},false,()=>invoiceList(new Request(req,{headers})));
+  assert.equal(spoofed.status,401);
+  const cross=await run(()=>invoiceSettings(new Request(req,{method:"POST",headers:{...headers,Origin:"https://evil.example"},body:JSON.stringify({action:"settings"})})));
+  assert.equal(cross.status,403);
+});

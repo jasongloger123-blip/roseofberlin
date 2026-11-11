@@ -2,10 +2,10 @@ import type { Order, OrderItem, EmailEvent } from "../../db/schema";
 import { money, statusLabels } from "./domain";
 import { orderEnvironment, publicBaseUrl } from "./runtime";
 
-export interface PaymentDetails { accountName: string; iban: string; bic: string; paypal: string }
+export interface PaymentDetails { accountName: string; iban: string; bic: string; paypal: string; westernUnion?: string; moneygram?: string }
 export function paymentDetails(): PaymentDetails {
   const env = orderEnvironment();
-  const details = { accountName: env.BANK_ACCOUNT_NAME?.trim() ?? "", iban: env.BANK_IBAN?.replace(/\s/g, "") ?? "", bic: env.BANK_BIC?.trim() ?? "", paypal: env.PAYPAL_ADDRESS?.trim() ?? "" };
+  const details = { accountName: env.BANK_ACCOUNT_NAME?.trim() ?? "", iban: env.BANK_IBAN?.replace(/\s/g, "") ?? "", bic: env.BANK_BIC?.trim() ?? "", paypal: env.PAYPAL_ADDRESS?.trim() ?? "", westernUnion: env.WESTERN_UNION_NAME?.trim() ?? "", moneygram: env.MONEYGRAM_NAME?.trim() ?? "" };
   if (!(details.accountName && details.iban && details.bic) && !details.paypal) throw new Error("PAYMENT_METHOD_MISSING");
   if ((details.accountName || details.iban || details.bic) && !(details.accountName && details.iban && details.bic)) throw new Error("BANK_DETAILS_INCOMPLETE");
   return details;
@@ -22,11 +22,11 @@ export function orderSummary(order: Order, items: OrderItem[], final: boolean): 
   const address = [order.customer_name, order.address_line1, order.address_line2, `${order.postal_code} ${order.city}`, new Intl.DisplayNames([order.language], { type: "region" }).of(order.country)].filter(Boolean).join("\n");
   return `<p><strong>${e(order.order_number)}</strong><br>${new Date(order.created_at).toLocaleDateString(de ? "de-DE" : "en-GB", { timeZone: "Europe/Berlin" })}</p><p class="address">${e(address)}</p><div class="table-wrap"><table><thead><tr><th>${de ? "Produkt / Größe" : "Product / Size"}</th><th class="num">${de ? "Menge" : "Qty"}</th><th class="num">${de ? "Einzelpreis" : "Unit price"}</th><th class="num">${de ? "Gesamt" : "Amount"}</th></tr></thead><tbody>${items.map(i => `<tr><td>${e(i.product_label)}<br><span class="muted">${e(i.size)}</span></td><td class="num">${i.quantity}</td><td class="num">${money(i.unit_price_cents, order.language)}</td><td class="num">${money(i.line_total_cents, order.language)}</td></tr>`).join("")}</tbody></table></div><div class="totals"><p><span>${de ? "Warenwert" : "Subtotal"}</span><strong>${money(order.subtotal_cents, order.language)}</strong></p><p><span>${de ? "Versand" : "Shipping"}</span><strong>${final && order.shipping_cents !== null ? money(order.shipping_cents, order.language) : de ? "Wird bestätigt" : "To be confirmed"}</strong></p>${final && order.total_cents !== null ? `<p class="grand"><span>${de ? "Gesamtbetrag" : "Total"}</span><strong>${money(order.total_cents, order.language)}</strong></p>` : ""}</div><p class="muted">${de ? "Preisbasis: EUR. Es wird keine Mehrwertsteuer berechnet." : "All amounts payable in EUR. No VAT is charged."}</p>`;
 }
-function bankBlock(order: Order) {
+export function bankBlock(order: Order) {
   if (!order.payment_snapshot) return "";
   const details = JSON.parse(order.payment_snapshot) as PaymentDetails;
   const de = order.language === "de", e = escapeHtml;
-  return `<section class="payment"><h2>${de ? "Zahlungsmöglichkeiten" : "Payment options"}</h2>${details.iban ? `<p><strong>${de ? "Banküberweisung" : "Bank transfer"}</strong><br>${e(details.accountName)}<br>IBAN: ${e(details.iban)}<br>BIC: ${e(details.bic)}</p>` : ""}${details.paypal ? `<p><strong>PayPal</strong><br>${e(details.paypal)}</p>` : ""}<p>${de ? "Verwendungszweck bei jeder Zahlung:" : "Payment reference for every payment:"}<br><strong>${e(order.order_number)}</strong></p></section>`;
+  return `<section class="payment"><h2>${de ? "Zahlungsmöglichkeiten" : "Payment options"}</h2>${details.iban ? `<p><strong>${de ? "Banküberweisung" : "Bank transfer"}</strong><br>${e(details.accountName)}<br>IBAN: ${e(details.iban)}<br>BIC: ${e(details.bic)}</p>` : ""}${details.paypal ? `<p><strong>PayPal</strong><br>${e(details.paypal)}</p>` : ""}${details.westernUnion ? `<p><strong>Western Union</strong><br>${e(details.westernUnion)}</p>` : ""}${details.moneygram ? `<p><strong>MoneyGram</strong><br>${e(details.moneygram)}</p>` : ""}<p>${de ? "Verwendungszweck bei jeder Zahlung:" : "Payment reference for every payment:"}<br><strong>${e(order.order_number)}</strong></p></section>`;
 }
 export function paymentDocument(order: Order, items: OrderItem[], nonce: string): string {
   const de = order.language === "de";
@@ -46,6 +46,7 @@ export function emailPayload(event: EmailEvent, order: Order, items: OrderItem[]
     payment: de ? "Deine Zahlungsanforderung" : "Your payment request",
     paid: de ? "Zahlung erhalten – vielen Dank" : "Payment received – thank you",
     shipped: de ? "Deine Bestellung wurde versendet" : "Your order has shipped",
+    invoice: de ? "Deine Rechnung" : "Your invoice",
   };
   const title = titles[event.kind];
   const intro = event.kind === "received" ? (de ? "Selesitina meldet sich innerhalb von 48 Stunden per E-Mail und bestätigt Verfügbarkeit sowie Versandkosten. Du erhältst anschließend eine gesonderte Zahlungsanforderung. Bitte noch nichts überweisen. Deine Kaufanfrage ist unverbindlich." : "Selesitina will get back to you by email within 48 hours to confirm availability and shipping costs. You will then receive a separate payment request. Please do not pay yet. Your purchase enquiry is non-binding.")

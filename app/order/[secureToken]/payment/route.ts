@@ -3,10 +3,12 @@ import { orderDatabase } from "../../../../lib/orders/runtime";
 import { getItems } from "../../../../lib/orders/repository";
 import { paymentDocument } from "../../../../lib/orders/templates";
 import { privateHeaders } from "../../../../lib/orders/http";
+import { orderBackendUrl } from "../../../../lib/orders/backend";
 export const dynamic = "force-dynamic";
 export async function GET(_request: Request, context: { params: Promise<{ secureToken: string }> }) {
   const { secureToken } = await context.params;
   if (!/^[a-f0-9]{64}$/.test(secureToken)) return new Response("Not found", { status: 404, headers: privateHeaders });
+  if(process.env.VERCEL==="1") return new Response(null,{status:307,headers:{...privateHeaders,Location:orderBackendUrl(`/order/${secureToken}/payment`)}});
   try {
     const order = await orderDatabase().prepare("SELECT * FROM orders WHERE public_token=? AND payment_snapshot IS NOT NULL").bind(secureToken).first<Order>();
     if (!order) return new Response("Not found", { status: 404, headers: privateHeaders });
