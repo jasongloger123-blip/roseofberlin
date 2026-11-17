@@ -6,6 +6,8 @@ export const christmasOfferAvailable = (now = Date.now()) => now < christmasOffe
 export const catalog = {
   tea: { label: "Rose of Berlin · Bio-Rosentee / Organic rose tea · Made in Germany", prices: { "10 Teebeutel": 990 } },
   parfum: { label: "Rose of Berlin · Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
+  kalosipani: { label: "Rose of Berlin · Kalosipani · Frangipani Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
+  siale: { label: "Rose of Berlin · Siale · Gardenie / Jasmin Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   oil: { label: "Rose of Berlin · Skin & Body Oil / Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
   christmas: { label: "Rose of Berlin · Christmas Geschenkset / Gift Set", prices: { "100 ml + 100 ml": 6000 } },
 } as const;

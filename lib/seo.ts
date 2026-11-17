@@ -23,6 +23,8 @@ export function pageMetadata(path: string, language: ShopLanguage, title: string
 export const productTitles: Record<ProductKey, Record<ShopLanguage,string>> = {
  tea: { de: "Bio-Rosentee · 10 handgemachte Teebeutel · Made in Germany", en: "Organic rose tea · 10 handmade tea bags · Made in Germany" },
  parfum: { de: "Rosenparfum · Handgemachtes Eau de Parfum", en: "Rose perfume · Handmade Eau de Parfum" },
+ kalosipani: { de: "Kalosipani · Frangipani Eau de Parfum", en: "Kalosipani · Frangipani Eau de Parfum" },
+ siale: { de: "Siale · Gardenie / Jasmin Eau de Parfum", en: "Siale · Gardenia / Jasmine Eau de Parfum" },
  oil: { de: "Rosenpflege · Handgemachtes Haut- & Körperöl", en: "Rose care · Handmade skin & body oil" },
  christmas: { de: "Weihnachts-Geschenkset · Rosenparfum 2 × 100 ml", en: "Christmas gift set · Rose perfume 2 × 100 ml" },
 };

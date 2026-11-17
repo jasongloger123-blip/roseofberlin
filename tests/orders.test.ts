@@ -349,3 +349,19 @@ test("invoice routes reject anonymous, spoofed identities and cross-origin setti
   const cross=await run(()=>invoiceSettings(new Request(req,{method:"POST",headers:{...headers,Origin:"https://evil.example"},body:JSON.stringify({action:"settings"})})));
   assert.equal(cross.status,403);
 });
+
+test("new fragrances retain their identity and server prices in a mixed order", () => {
+  for (const [size, price] of [["20 ml", 1990], ["30 ml", 2490], ["50 ml", 3490], ["100 ml", 4990]] as const) {
+    const { product: _product, size: _size, quantity: _quantity, ...contact } = input;
+    const order = parseOrder({ ...contact, items: [
+      { product: "kalosipani", size, quantity: 2 },
+      { product: "siale", size, quantity: 1 },
+    ] });
+    assert.equal(order.subtotalCents, price * 3);
+    assert.equal(order.items.length, 2);
+    assert.match(order.items[0].productLabel, /Kalosipani/);
+    assert.match(order.items[1].productLabel, /Siale/);
+    assert.equal(order.items[0].unitPriceCents, price);
+    assert.equal(order.items[1].unitPriceCents, price);
+  }
+});
