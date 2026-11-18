@@ -26,6 +26,7 @@ export const productTitles: Record<ProductKey, Record<ShopLanguage,string>> = {
  kalosipani: { de: "Kalosipani · Frangipani Eau de Parfum", en: "Kalosipani · Frangipani Eau de Parfum" },
  siale: { de: "Siale · Gardenie / Jasmin Eau de Parfum", en: "Siale · Gardenia / Jasmine Eau de Parfum" },
  oil: { de: "Rosenpflege · Handgemachtes Haut- & Körperöl", en: "Rose care · Handmade skin & body oil" },
+ redRoseSet: { de: "Red Rose Geschenkset · Rosenparfum & Körperöl", en: "Red Rose Gift Set · Rose Perfume & Body Oil" },
  christmas: { de: "Weihnachts-Geschenkset · Rosenparfum 2 × 100 ml", en: "Christmas gift set · Rose perfume 2 × 100 ml" },
 };
 export function productStructuredData(key: ProductKey, language: ShopLanguage) {
