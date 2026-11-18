@@ -9,6 +9,7 @@ export const catalog = {
   kalosipani: { label: "Rose of Berlin · Kalosipani · Frangipani Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   siale: { label: "Rose of Berlin · Siale · Gardenie / Jasmin Eau de Parfum", prices: { "20 ml": 1990, "30 ml": 2490, "50 ml": 3490, "100 ml": 4990 } },
   oil: { label: "Rose of Berlin · Skin & Body Oil / Haut- & Körperöl", prices: { "20 ml": 900, "100 ml": 1500 } },
+  redRoseSet: { label: "Rose of Berlin · Red Rose Geschenkset / Gift Set", prices: { "20 ml + 20 ml": 4000 } },
   christmas: { label: "Rose of Berlin · Christmas Geschenkset / Gift Set", prices: { "100 ml + 100 ml": 6000 } },
 } as const;
 export class OrderError extends Error {
